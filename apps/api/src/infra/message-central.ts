@@ -52,6 +52,19 @@ async function authToken(force = false): Promise<string> {
 }
 
 /** Splits +919845022114 into its country code and the national number. */
+/** Carries the provider's status so callers can tell a refusal from an outage. */
+export class ProviderError extends Error {
+  readonly status: number;
+  readonly detail: string;
+
+  constructor(status: number, message: string, detail: string) {
+    super(`${message} with ${status.toString()}: ${detail}`);
+    this.name = 'ProviderError';
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
 function splitMobile(mobile: string): { countryCode: string; nationalNumber: string } {
   const digits = mobile.replace(/[^\d]/g, '');
   const countryCode = env.MESSAGE_CENTRAL_COUNTRY_CODE;
@@ -73,7 +86,13 @@ async function call<T>(path: string, params: URLSearchParams, method: 'GET' | 'P
   }
 
   if (!response.ok) {
-    throw new Error(`Message Central ${path} failed with ${response.status.toString()}`);
+    // Their body carries the reason; without it a failure is undiagnosable.
+    const detail = await response.text().catch(() => '');
+    throw new ProviderError(
+      response.status,
+      `Message Central ${path} failed`,
+      detail.slice(0, 300),
+    );
   }
   return (await response.json()) as T;
 }

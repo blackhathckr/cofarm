@@ -4,6 +4,7 @@ import { SYSTEM_ROLES } from '@cofarm/contracts/permissions';
 import type { Session } from '@cofarm/contracts/auth';
 import { newId } from '@cofarm/core/id';
 
+import { ProviderError } from '../../infra/message-central.ts';
 import { otpDelivery } from '../../infra/otp-delivery.ts';
 import type { Actor } from '../../lib/actor.ts';
 import { AppError, unauthorized } from '../../lib/errors.ts';
@@ -70,6 +71,23 @@ export type OtpChallenge = {
  * An unknown mobile still returns a challenge. Telling a caller which numbers
  * are registered would turn the login screen into a partner directory.
  */
+/**
+ * The provider holds one live verification per number and refuses a second,
+ * which is a wait-and-retry for the partner rather than a server fault.
+ */
+async function startDelivery(mobile: string) {
+  try {
+    return await otpDelivery.start(mobile);
+  } catch (failure) {
+    if (failure instanceof ProviderError && failure.status >= 400 && failure.status < 500) {
+      throw new AppError(ERROR_CODES.otpLocked, 429, 'A code was sent a moment ago', {
+        detail: 'Wait a minute before asking for another.',
+      });
+    }
+    throw failure;
+  }
+}
+
 export async function requestOtp(mobile: string): Promise<OtpChallenge> {
   const windowStart = new Date(Date.now() - OTP_WINDOW_MINUTES * 60_000);
   const recent = await repo.countRecentChallenges(mobile, windowStart);
@@ -81,7 +99,7 @@ export async function requestOtp(mobile: string): Promise<OtpChallenge> {
 
   const challengeId = newId();
   const expiresAt = new Date(Date.now() + OTP_TTL_SECONDS * 1000);
-  const started = await otpDelivery.start(mobile);
+  const started = await startDelivery(mobile);
 
   await repo.insertChallenge({
     id: challengeId,
