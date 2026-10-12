@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -34,7 +31,7 @@ jobs:
               - 'package.json'
 
   deploy-api:
-    needs: [ci, changes]
+    needs: changes
     if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     concurrency:
@@ -63,7 +60,7 @@ jobs:
             /var/www/repos/cofarm/infra/deploy/api.sh
 
   deploy-admin:
-    needs: [ci, changes]
+    needs: changes
     if: needs.changes.outputs.admin == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     concurrency:
