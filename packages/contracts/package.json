@@ -1,0 +1,21 @@
+{
+  "name": "@cofarm/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cofarm/core": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cofarm/tsconfig": "workspace:*",
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3"
+  }
+}

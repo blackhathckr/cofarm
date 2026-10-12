@@ -1,0 +1,24 @@
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "overrides": [
+    {
+      "files": "apps/admin/**/*.{ts,tsx,css}",
+      "options": {
+        "tailwindStylesheet": "./apps/admin/src/styles/global.css"
+      }
+    },
+    {
+      "files": "apps/mobile/**/*.{ts,tsx}",
+      "options": {
+        "plugins": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+@import 'uniwind';
+@import 'heroui-native/styles';
+
+/* The CoFarm palette over HeroUI's defaults, declared in the same layer and
+   variant structure the library uses so these win without !important. */
+@layer theme {
+  :root {
+    @variant light {
+      --background: #faf9f5;
+      --foreground: #201e1d;
+
+      --surface: #ffffff;
+      --surface-foreground: #201e1d;
+      --surface-secondary: #f4efe4;
+      --surface-secondary-foreground: #201e1d;
+      --surface-tertiary: #eee7db;
+      --surface-tertiary-foreground: #2e2b25;
+
+      --overlay: #ffffff;
+      --overlay-foreground: #201e1d;
+
+      --muted: #645c50;
+      --default: #eee7db;
+      --default-foreground: #201e1d;
+
+      --accent: #c67139;
+      --accent-foreground: #fffaf6;
+
+      --segment: #ebddc5;
+      --segment-foreground: #402310;
+
+      --border: #dcd3c4;
+      --separator: #dcd3c4;
+      --focus: #c67139;
+      --link: #8c491a;
+
+      --field-background: #ffffff;
+      --field-foreground: #201e1d;
+      --field-placeholder: #82796a;
+
+      --success: #417247;
+      --success-foreground: #eef4e6;
+      --warning: #b2622d;
+      --warning-foreground: #fff2eb;
+      --danger: #b42318;
+      --danger-foreground: #fff5f4;
+    }
+
+    @variant dark {
+      --background: #1b1a17;
+      --foreground: #f4efe4;
+
+      --surface: #26241f;
+      --surface-foreground: #f4efe4;
+      --surface-secondary: #2e2b25;
+      --surface-secondary-foreground: #f4efe4;
+      --surface-tertiary: #332f27;
+      --surface-tertiary-foreground: #f4efe4;
+
+      --overlay: #26241f;
+      --overlay-foreground: #f4efe4;
+
+      --muted: #a19786;
+      --default: #332f27;
+      --default-foreground: #f4efe4;
+
+      --accent: #d67f48;
+      --accent-foreground: #26150c;
+
+      --segment: #332f27;
+      --segment-foreground: #f4efe4;
+
+      --border: #3a352c;
+      --separator: #3a352c;
+      --focus: #d67f48;
+      --link: #f6a06b;
+
+      --field-background: #26241f;
+      --field-foreground: #f4efe4;
+      --field-placeholder: #a19786;
+
+      --success: #5d9161;
+      --success-foreground: #142b1a;
+      --warning: #d67f48;
+      --warning-foreground: #26150c;
+      --danger: #e06a5d;
+      --danger-foreground: #2a0f0c;
+    }
+  }
+}
+
+/* Brand ramps for our own components, so nothing carries a colour literal. */
+@theme {
+  --color-clay-50: #fff2eb;
+  --color-clay-100: #ffe1d0;
+  --color-clay-200: #ffc6a5;
+  --color-clay-300: #f6a06b;
+  --color-clay-400: #d67f48;
+  --color-clay-500: #c67139;
+  --color-clay-600: #b2622d;
+  --color-clay-700: #8c491a;
+  --color-clay-800: #643312;
+  --color-clay-900: #402310;
+
+  --color-sage-50: #eef4e6;
+  --color-sage-100: #dcebc8;
+  --color-sage-200: #b7d4a6;
+  --color-sage-300: #8ab486;
+  --color-sage-400: #5d9161;
+  --color-sage-500: #417247;
+  --color-sage-600: #2b5a34;
+  --color-sage-700: #1f4227;
+  --color-sage-800: #142b1a;
+
+  --color-sand-50: #f9f4ed;
+  --color-sand-100: #eee7db;
+  --color-sand-200: #dcd3c4;
+  --color-sand-300: #c0b6a5;
+  --color-sand-400: #a19786;
+  --color-sand-500: #82796a;
+  --color-sand-600: #645c50;
+  --color-sand-700: #474238;
+  --color-sand-800: #2e2b25;
+}

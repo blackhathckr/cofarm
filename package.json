@@ -1,0 +1,38 @@
+{
+  "name": "cofarm",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": ">=22.19.0",
+    "pnpm": ">=10.16.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck",
+    "up": "docker compose -f infra/docker-compose.yml up -d",
+    "down": "docker compose -f infra/docker-compose.yml down",
+    "db:generate": "pnpm --filter @cofarm/api db:generate",
+    "db:migrate": "pnpm --filter @cofarm/api db:migrate",
+    "db:seed": "pnpm --filter @cofarm/api db:seed",
+    "db:seed:demo": "pnpm --filter @cofarm/api db:seed:demo",
+    "db:seed:production": "pnpm --filter @cofarm/api db:seed:production",
+    "db:reset": "pnpm --filter @cofarm/api db:reset",
+    "dev:api": "pnpm --filter @cofarm/api dev",
+    "dev:admin": "pnpm --filter @cofarm/admin dev",
+    "dev:mobile": "pnpm --filter @cofarm/mobile start",
+    "db:truncate": "pnpm --filter @cofarm/api db:truncate",
+    "flows": "bash docs/flows/all.sh"
+  },
+  "devDependencies": {
+    "@cofarm/eslint-config": "workspace:*",
+    "eslint": "10.11.0",
+    "prettier": "3.9.9",
+    "prettier-plugin-tailwindcss": "0.8.1",
+    "typescript": "5.9.3"
+  }
+}

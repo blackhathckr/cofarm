@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.expo
+pnpm-lock.yaml
+apps/api/src/db/migrations
+apps/admin/src/components/ui
+docs/flows
+apps/mobile/expo-env.d.ts

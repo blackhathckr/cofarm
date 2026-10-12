@@ -1,0 +1,51 @@
+name: cofarm
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cofarm
+      POSTGRES_PASSWORD: cofarm
+      POSTGRES_DB: cofarm
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cofarm -d cofarm']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Stands in for S3. Same API, so the storage code is identical in production.
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: cofarm
+      MINIO_ROOT_PASSWORD: cofarm-local-secret
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - ./.data/minio:/data
+    healthcheck:
+      test: ['CMD', 'mc', '--version']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 cofarm cofarm-local-secret; do sleep 1; done;
+      mc mb --ignore-existing local/cofarm-documents;
+      mc anonymous set none local/cofarm-documents;
+      echo 'bucket ready';
+      "

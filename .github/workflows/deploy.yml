@@ -1,0 +1,108 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      admin: ${{ steps.filter.outputs.admin }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+
+  deploy-api:
+    needs: [ci, changes]
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-api
+      cancel-in-progress: false
+    steps:
+      - name: Authorise the deploy key
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          echo "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull, migrate and reload the API
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "$VM_USER@$VM_HOST" \
+            /var/www/repos/cofarm/infra/deploy/api.sh
+
+  deploy-admin:
+    needs: [ci, changes]
+    if: needs.changes.outputs.admin == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-admin
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The VM never builds the SPA, so only admin and its workspace deps install here.
+      - run: pnpm install --frozen-lockfile --filter "@cofarm/admin..."
+
+      - run: pnpm --filter @cofarm/admin build
+
+      - name: Authorise the deploy key
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          echo "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Ship the build and reload nginx
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          rsync -az --delete -e 'ssh -i ~/.ssh/id_deploy' \
+            apps/admin/dist/ "$VM_USER@$VM_HOST:/var/www/repos/cofarm/apps/admin/dist/"
+          ssh -i ~/.ssh/id_deploy "$VM_USER@$VM_HOST" \
+            /var/www/repos/cofarm/infra/deploy/admin.sh

@@ -1,0 +1,183 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* The CoFarm palette, sampled from the approved design. Everything the console
+   renders resolves to one of these; no component carries a colour literal. */
+:root {
+  --radius: 0.75rem;
+
+  --clay-50: #fff2eb;
+  --clay-100: #ffe1d0;
+  --clay-200: #ffc6a5;
+  --clay-300: #f6a06b;
+  --clay-400: #d67f48;
+  --clay-500: #c67139;
+  --clay-600: #b2622d;
+  --clay-700: #8c491a;
+  --clay-800: #643312;
+  --clay-900: #402310;
+
+  --sage-50: #eef4e6;
+  --sage-100: #dcebc8;
+  --sage-200: #b7d4a6;
+  --sage-300: #8ab486;
+  --sage-400: #5d9161;
+  --sage-500: #417247;
+  --sage-600: #2b5a34;
+  --sage-700: #1f4227;
+  --sage-800: #142b1a;
+
+  --sand-50: #f9f4ed;
+  --sand-100: #eee7db;
+  --sand-200: #dcd3c4;
+  --sand-300: #c0b6a5;
+  --sand-400: #a19786;
+  --sand-500: #82796a;
+  --sand-600: #645c50;
+  --sand-700: #474238;
+  --sand-800: #2e2b25;
+
+  --background: #faf9f5;
+  --foreground: #201e1d;
+  --card: #ffffff;
+  --card-foreground: #201e1d;
+  --popover: #ffffff;
+  --popover-foreground: #201e1d;
+  --primary: #c67139;
+  --primary-foreground: #fffaf6;
+  --secondary: #ebddc5;
+  --secondary-foreground: #402310;
+  --muted: #eee7db;
+  --muted-foreground: #645c50;
+  --accent: #dcebc8;
+  --accent-foreground: #1f4227;
+  --destructive: #b42318;
+  --destructive-foreground: #fff5f4;
+  --border: #dcd3c4;
+  --input: #dcd3c4;
+  --ring: #c67139;
+
+  --sidebar: #f4efe4;
+  --sidebar-foreground: #2e2b25;
+  --sidebar-primary: #2b5a34;
+  --sidebar-primary-foreground: #eef4e6;
+  --sidebar-accent: #e3dbc8;
+  --sidebar-accent-foreground: #402310;
+  --sidebar-border: #dcd3c4;
+  --sidebar-ring: #c67139;
+}
+
+.dark {
+  --background: #1b1a17;
+  --foreground: #f4efe4;
+  --card: #26241f;
+  --card-foreground: #f4efe4;
+  --popover: #26241f;
+  --popover-foreground: #f4efe4;
+  --primary: #d67f48;
+  --primary-foreground: #26150c;
+  --secondary: #332f27;
+  --secondary-foreground: #f4efe4;
+  --muted: #2e2b25;
+  --muted-foreground: #a19786;
+  --accent: #1f4227;
+  --accent-foreground: #dcebc8;
+  --destructive: #e06a5d;
+  --destructive-foreground: #2a0f0c;
+  --border: #3a352c;
+  --input: #3a352c;
+  --ring: #d67f48;
+
+  --sidebar: #221f1a;
+  --sidebar-foreground: #f4efe4;
+  --sidebar-primary: #5d9161;
+  --sidebar-primary-foreground: #142b1a;
+  --sidebar-accent: #332f27;
+  --sidebar-accent-foreground: #f4efe4;
+  --sidebar-border: #3a352c;
+  --sidebar-ring: #d67f48;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-clay-50: var(--clay-50);
+  --color-clay-100: var(--clay-100);
+  --color-clay-200: var(--clay-200);
+  --color-clay-300: var(--clay-300);
+  --color-clay-400: var(--clay-400);
+  --color-clay-500: var(--clay-500);
+  --color-clay-600: var(--clay-600);
+  --color-clay-700: var(--clay-700);
+  --color-clay-800: var(--clay-800);
+  --color-clay-900: var(--clay-900);
+
+  --color-sage-50: var(--sage-50);
+  --color-sage-100: var(--sage-100);
+  --color-sage-200: var(--sage-200);
+  --color-sage-300: var(--sage-300);
+  --color-sage-400: var(--sage-400);
+  --color-sage-500: var(--sage-500);
+  --color-sage-600: var(--sage-600);
+  --color-sage-700: var(--sage-700);
+  --color-sage-800: var(--sage-800);
+
+  --color-sand-50: var(--sand-50);
+  --color-sand-100: var(--sand-100);
+  --color-sand-200: var(--sand-200);
+  --color-sand-300: var(--sand-300);
+  --color-sand-400: var(--sand-400);
+  --color-sand-500: var(--sand-500);
+  --color-sand-600: var(--sand-600);
+  --color-sand-700: var(--sand-700);
+  --color-sand-800: var(--sand-800);
+
+  --font-sans: Figtree, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  /* Figures line up in columns when they share a width. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

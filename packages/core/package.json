@@ -1,0 +1,26 @@
+{
+  "name": "@cofarm/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./cycle": "./src/cycle.ts",
+    "./id": "./src/id.ts",
+    "./money": "./src/money.ts",
+    "./name": "./src/name.ts",
+    "./pnl": "./src/pnl.ts",
+    "./project-code": "./src/project-code.ts",
+    "./share": "./src/share.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "uuid": "14.0.2"
+  },
+  "devDependencies": {
+    "@cofarm/tsconfig": "workspace:*",
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3"
+  }
+}

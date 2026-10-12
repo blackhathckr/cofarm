@@ -1,0 +1,11 @@
+# The repo is edited on Windows and runs on Linux; LF everywhere keeps the
+# deploy scripts executable and diffs clean.
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp4 binary
+*.ttf binary
+*.woff2 binary

@@ -1,0 +1,9 @@
+{
+  "extends": "@cofarm/tsconfig/react.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+}

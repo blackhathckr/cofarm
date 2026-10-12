@@ -1,0 +1,26 @@
+{
+  "name": "@cofarm/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./api": "./api.mjs",
+    "./web": "./web.mjs",
+    "./native": "./native.mjs"
+  },
+  "dependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint-import-resolver-node": "0.3.9",
+    "eslint-plugin-check-file": "3.3.2",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
+    "typescript-eslint": "8.71.0"
+  },
+  "peerDependencies": {
+    "eslint": "^10.0.0",
+    "typescript": "^5.9.0"
+  }
+}
