@@ -97,7 +97,7 @@ export function MilestoneStageCard({ milestone, disabled, onChange }: MilestoneS
       </Select>
 
       <div className="space-y-1">
-        <Label className="text-[11px] opacity-70">Started</Label>
+        <Label className="text-xs opacity-70">Started</Label>
         <Input
           type="date"
           className="h-8 text-xs"
@@ -114,7 +114,7 @@ export function MilestoneStageCard({ milestone, disabled, onChange }: MilestoneS
       </div>
 
       <div className="space-y-1">
-        <Label className="text-[11px] opacity-70">Finished</Label>
+        <Label className="text-xs opacity-70">Finished</Label>
         <Input
           type="date"
           className="h-8 text-xs"
@@ -132,13 +132,13 @@ export function MilestoneStageCard({ milestone, disabled, onChange }: MilestoneS
       </div>
 
       {problem === null ? null : (
-        <p role="alert" className="text-[11px] font-semibold text-destructive">
+        <p role="alert" className="text-xs font-semibold text-destructive">
           {problem}
         </p>
       )}
 
       {milestone.plannedFrom === null ? null : (
-        <span className="tabular block text-[11px] opacity-60">
+        <span className="tabular block text-xs opacity-60">
           {`Planned ${milestone.plannedFrom}`}
         </span>
       )}

@@ -1,5 +1,4 @@
 import { Spinner } from 'heroui-native';
-import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -14,37 +13,13 @@ import { ExportStatementButton } from '../components/ExportStatementButton';
 import { NoStatementYet } from '../components/NoStatementYet';
 import { PnlBreakdown } from '../components/PnlBreakdown';
 import { YieldStats } from '../components/YieldStats';
-import { useCycleStatement } from '../hooks/use-cycle-statement.ts';
-import { useMyStatements } from '../hooks/use-my-statements.ts';
-import { useProjectCycles } from '../hooks/use-project-cycles.ts';
-import { useProjectHarvests } from '../hooks/use-project-harvests.ts';
-
-function pickStatement<TEntry extends { cycleId: string }>(
-  entries: readonly TEntry[],
-  cycleId: string | null,
-): TEntry | null {
-  return entries.find((entry) => entry.cycleId === cycleId) ?? entries[0] ?? null;
-}
+import { useHarvestView } from '../hooks/use-harvest-view.ts';
 
 export function HarvestScreen() {
   const session = useSession();
   const memberships = session.user?.projects ?? [];
   const { projectId, select } = useSelectedProject();
-
-  const [chosenCycleId, setChosenCycleId] = useState<string | null>(null);
-  const statements = useMyStatements();
-  const harvests = useProjectHarvests(projectId);
-  const cycles = useProjectCycles(projectId);
-
-  const published = statements.items.filter((statement) => statement.projectId === projectId);
-  const totals = statements.data?.pages[0]?.totals;
-  const allCycles = [...(cycles.data ?? [])].sort((left, right) => left.cycleNo - right.cycleNo);
-  const chosen = pickStatement(published, chosenCycleId);
-  const awaited =
-    chosenCycleId === null || published.some((entry) => entry.cycleId === chosenCycleId)
-      ? null
-      : (allCycles.find((entry) => entry.id === chosenCycleId) ?? null);
-  const cycle = useCycleStatement(chosen?.projectId ?? null, chosen?.cycleId ?? null);
+  const view = useHarvestView(projectId);
 
   const switcher = (
     <ProjectSwitcher
@@ -58,7 +33,7 @@ export function HarvestScreen() {
     />
   );
 
-  if (statements.isPending || harvests.isPending) {
+  if (view.isPending) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <Spinner />
@@ -66,36 +41,23 @@ export function HarvestScreen() {
     );
   }
 
-  if (chosen === null) {
+  const { statement, awaited } = view;
+  if (statement === null) {
     return (
       <View className="flex-1 bg-background">
         <View className="px-5 pt-3">{switcher}</View>
-        <RefreshScreen
-          isRefreshing={statements.isRefetching || harvests.isRefetching}
-          onRefresh={() => {
-            void Promise.all([statements.refetch(), harvests.refetch()]);
-          }}
-        >
-          <NoStatementYet awaitedCycleNo={harvests.data?.at(-1)?.cycleNo ?? null} />
+        <RefreshScreen isRefreshing={view.isRefreshing} onRefresh={view.refresh}>
+          <NoStatementYet awaitedCycleNo={view.harvests.data?.at(-1)?.cycleNo ?? null} />
         </RefreshScreen>
       </View>
     );
   }
 
-  const statement = cycle.data ?? chosen;
-
   return (
     <ScrollView
       className="flex-1 bg-background"
       contentContainerClassName="grow gap-5 px-5 pt-3 pb-10"
-      refreshControl={
-        <RefreshControl
-          refreshing={statements.isRefetching || cycle.isRefetching}
-          onRefresh={() => {
-            void Promise.all([statements.refetch(), cycle.refetch(), harvests.refetch()]);
-          }}
-        />
-      }
+      refreshControl={<RefreshControl refreshing={view.isRefreshing} onRefresh={view.refresh} />}
     >
       {switcher}
 
@@ -104,30 +66,26 @@ export function HarvestScreen() {
       </Text>
 
       <CycleSelector
-        cycles={allCycles.map((entry) => ({
-          cycleId: entry.id,
-          cycleNo: entry.cycleNo,
-          hasStatement: published.some((item) => item.cycleId === entry.id),
-        }))}
+        cycles={view.options}
         selectedCycleId={awaited?.id ?? statement.cycleId}
-        onSelect={setChosenCycleId}
+        onSelect={view.onSelectCycle}
       />
 
       {awaited === null ? (
         <>
           <LoadMore
-            hasMore={statements.hasNextPage}
-            isLoading={statements.isFetchingNextPage}
+            hasMore={view.statements.hasNextPage}
+            isLoading={view.statements.isFetchingNextPage}
             label="Show earlier statements"
             onPress={() => {
-              void statements.fetchNextPage();
+              void view.statements.fetchNextPage();
             }}
           />
 
           <YieldStats statement={statement} />
           <PnlBreakdown statement={statement} />
 
-          {totals === undefined ? null : <CumulativeCard totals={totals} />}
+          {view.totals === undefined ? null : <CumulativeCard totals={view.totals} />}
 
           <ExportStatementButton statement={statement} />
         </>

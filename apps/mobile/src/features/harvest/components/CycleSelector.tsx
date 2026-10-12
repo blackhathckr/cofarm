@@ -18,6 +18,11 @@ type CycleSelectorProps = {
  * Every cycle on the project, not only the ones already settled, so a partner
  * can see that cycle 3 exists and is still running.
  */
+function chipVariant(isSelected: boolean, hasStatement: boolean) {
+  if (isSelected) return 'primary' as const;
+  return hasStatement ? ('secondary' as const) : ('tertiary' as const);
+}
+
 export function CycleSelector({ cycles, selectedCycleId, onSelect }: CycleSelectorProps) {
   if (cycles.length === 0) return null;
 
@@ -32,13 +37,7 @@ export function CycleSelector({ cycles, selectedCycleId, onSelect }: CycleSelect
         <Chip
           key={cycle.cycleId}
           size="sm"
-          variant={
-            cycle.cycleId === selectedCycleId
-              ? 'primary'
-              : cycle.hasStatement
-                ? 'secondary'
-                : 'tertiary'
-          }
+          variant={chipVariant(cycle.cycleId === selectedCycleId, cycle.hasStatement)}
           accessibilityLabel={
             cycle.hasStatement
               ? `Cycle ${String(cycle.cycleNo)}`

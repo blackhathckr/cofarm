@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { Button, Input, InputOTP } from 'heroui-native';
 import { useEffect, useState } from 'react';
 import {
@@ -12,7 +11,9 @@ import {
   View,
 } from 'react-native';
 
+import { Photo } from '@/components/ui/Photo';
 import { ApiError } from '@/lib/api-client.ts';
+import logo from '../../../../assets/logo-wordmark.png';
 import { useRequestOtp, useVerifyOtp } from '../hooks/use-otp-sign-in.ts';
 
 const OTP_LENGTH = 6;
@@ -80,9 +81,9 @@ export function SignInScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="gap-3">
-          <Image
-            source={require('../../../../assets/logo-wordmark.png')}
-            style={{ width: 220, height: 57 }}
+          <Photo
+            source={logo}
+            className="h-14 w-56"
             contentFit="contain"
             accessibilityLabel="CoFarm"
           />

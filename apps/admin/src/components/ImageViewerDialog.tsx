@@ -25,13 +25,13 @@ function Frame({ documentId, alt }: { documentId: string; alt: string }) {
     );
   }
 
-  if (ticket.data === undefined) return <Skeleton className="h-[70vh] w-full" />;
+  if (ticket.data === undefined) return <Skeleton className="viewer-frame-pending w-full" />;
 
   return (
     <img
       src={ticket.data.downloadUrl}
       alt={alt}
-      className="max-h-[75vh] w-auto max-w-full object-contain"
+      className="viewer-frame w-auto max-w-full object-contain"
     />
   );
 }
@@ -65,7 +65,7 @@ export function ImageViewerDialog({
       }}
     >
       <DialogContent
-        className="w-auto max-w-[min(95vw,1200px)] sm:max-w-[min(95vw,1200px)]"
+        className="viewer-dialog"
         onKeyDown={(event) => {
           if (event.key === 'ArrowLeft') step(-1);
           if (event.key === 'ArrowRight') step(1);

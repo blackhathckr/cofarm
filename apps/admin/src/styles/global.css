@@ -180,4 +180,15 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  /* The image viewer scales to the window, which the spacing scale cannot express. */
+  .viewer-dialog {
+    width: auto;
+    max-width: min(95vw, 1200px);
+  }
+  .viewer-frame {
+    max-height: 75vh;
+  }
+  .viewer-frame-pending {
+    height: 70vh;
+  }
 }

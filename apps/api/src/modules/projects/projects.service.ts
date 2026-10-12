@@ -249,7 +249,7 @@ export async function setCycleStatus(
   if (project === null) throw notFound('Project');
 
   const existing = await repo.findCycle(cycleId);
-  if (existing === null || existing.projectId !== projectId) throw notFound('Cycle');
+  if (existing?.projectId !== projectId) throw notFound('Cycle');
 
   // Only one cycle runs at a time, so activating this one stands the others down.
   if (input.status === 'active') await demotePreviousActive(projectId, cycleId);
@@ -287,7 +287,7 @@ export async function deleteCycle(projectId: string, cycleId: string): Promise<v
   if (project === null) throw notFound('Project');
 
   const existing = await repo.findCycle(cycleId);
-  if (existing === null || existing.projectId !== projectId) throw notFound('Cycle');
+  if (existing?.projectId !== projectId) throw notFound('Cycle');
 
   const dependants = await repo.cycleDependants(cycleId);
   const blockers = [
