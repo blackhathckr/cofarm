@@ -45,7 +45,7 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
           <p className="text-sm text-muted-foreground">
-            Every cost booked against this project, by category and head.
+            Every cost booked against this project, by category and expense.
           </p>
         </div>
         <div className="flex gap-2">

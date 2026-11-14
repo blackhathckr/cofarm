@@ -69,7 +69,7 @@ export function ReverseExpenseDialog({
         <dl className="grid grid-cols-2 gap-2 rounded-lg border bg-muted p-4 text-sm">
           <dt className="text-muted-foreground">Category</dt>
           <dd>{entry.costHead === null ? '—' : COST_HEAD_LABELS[entry.costHead]}</dd>
-          <dt className="text-muted-foreground">Head</dt>
+          <dt className="text-muted-foreground">Expense</dt>
           <dd>
             {entry.expenseHeadId === null ? '—' : (headPath(heads, entry.expenseHeadId) ?? '—')}
           </dd>

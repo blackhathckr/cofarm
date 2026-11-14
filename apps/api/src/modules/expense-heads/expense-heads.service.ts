@@ -48,7 +48,7 @@ export async function updateHead(
   input: UpdateExpenseHeadBody,
 ): Promise<ExpenseHead> {
   const before = await repo.findHead(headId);
-  if (before === null) throw notFound('Expense head');
+  if (before === null) throw notFound('Expense');
 
   if (input.name !== undefined && input.name !== before.name) {
     await assertNameFree({
@@ -62,7 +62,7 @@ export async function updateHead(
     ...(input.name === undefined ? {} : { name: input.name }),
     ...(input.archived === undefined ? {} : { archivedAt: input.archived ? new Date() : null }),
   });
-  if (updated === null) throw notFound('Expense head');
+  if (updated === null) throw notFound('Expense');
 
   await audit.record({
     action: 'expense_head.updated',
@@ -79,7 +79,7 @@ export async function updateHead(
 /** The cost head an expense filed under this head counts towards. */
 export async function costHeadForExpense(headId: string): Promise<CostHead> {
   const head = await repo.findHead(headId);
-  if (head === null) throw notFound('Expense head');
+  if (head === null) throw notFound('Expense');
 
   const parent = head.parentId === null ? null : await repo.findHead(head.parentId);
   for (const row of [head, parent]) {
@@ -91,14 +91,14 @@ export async function costHeadForExpense(headId: string): Promise<CostHead> {
 
 async function parentFor(parentId: string): Promise<repo.ExpenseHeadRow> {
   const parent = await repo.findHead(parentId);
-  if (parent === null) throw notFound('Parent expense head');
-  if (parent.parentId !== null) throw badRequest('A sub-head cannot have sub-heads of its own');
+  if (parent === null) throw notFound('Expense');
+  if (parent.parentId !== null) throw badRequest('A detail cannot have details of its own');
   return parent;
 }
 
 function costHeadOf(input: CreateExpenseHeadBody): CostHead {
   if ('costHead' in input) return input.costHead;
-  throw badRequest('A head needs a cost head or a parent');
+  throw badRequest('Choose a category or an expense to file this under');
 }
 
 async function assertNameFree(input: {

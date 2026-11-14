@@ -46,7 +46,7 @@ export function ExpenseHeadPicker({ idPrefix, value, onChange }: ExpenseHeadPick
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor={`${idPrefix}-head`}>Head</Label>
+          <Label htmlFor={`${idPrefix}-head`}>Expense</Label>
           <Select
             value={value.headId ?? ''}
             disabled={headOptions.length === 0}
@@ -56,7 +56,9 @@ export function ExpenseHeadPicker({ idPrefix, value, onChange }: ExpenseHeadPick
           >
             <SelectTrigger id={`${idPrefix}-head`} className="w-full">
               <SelectValue
-                placeholder={value.costHead === null ? 'Choose a category first' : 'Choose a head'}
+                placeholder={
+                  value.costHead === null ? 'Choose a category first' : 'Choose an expense'
+                }
               />
             </SelectTrigger>
             <SelectContent>
@@ -71,7 +73,7 @@ export function ExpenseHeadPicker({ idPrefix, value, onChange }: ExpenseHeadPick
 
         {subHeadOptions.length === 0 ? null : (
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-sub-head`}>Sub-head</Label>
+            <Label htmlFor={`${idPrefix}-sub-head`}>Detail</Label>
             <Select
               value={value.subHeadId ?? NO_SUB_HEAD}
               onValueChange={(subHeadId) => {

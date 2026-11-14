@@ -31,7 +31,7 @@ export function ExpenseTable({ entries, heads, onReverse }: ExpenseTableProps) {
         <TableRow>
           <TableHead>Date</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Head</TableHead>
+          <TableHead>Expense</TableHead>
           <TableHead className="text-right">Amount</TableHead>
           <TableHead>Note</TableHead>
           <TableHead>Receipt</TableHead>
@@ -44,7 +44,7 @@ export function ExpenseTable({ entries, heads, onReverse }: ExpenseTableProps) {
           <EmptyState
             colSpan={8}
             title="No expense entries match these filters"
-            detail="Widen the cycle, category, head or date range, or record the first cost."
+            detail="Widen the cycle, category, expense or date range, or record the first cost."
           />
         ) : null}
         {entries.map((entry) => {

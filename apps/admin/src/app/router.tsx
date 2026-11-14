@@ -58,7 +58,7 @@ const dashboardRoute = route('/', () => <DashboardPage />);
 const projectsRoute = route('/projects', () => <ProjectsPage />);
 const partnersRoute = route('/partners', () => <PartnersPage />);
 const approvalsRoute = route('/approvals', () => <ApprovalsPage />);
-const expenseHeadsRoute = route('/expense-heads', () => <ExpenseHeadsPage />);
+const expenseHeadsRoute = route('/expense-list', () => <ExpenseHeadsPage />);
 export type InboxSearch = { thread?: string; project?: string };
 
 const inboxRoute = createRoute({

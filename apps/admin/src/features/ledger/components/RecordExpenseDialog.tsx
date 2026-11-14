@@ -66,7 +66,7 @@ export function RecordExpenseDialog({ projectId, cycles }: RecordExpenseDialogPr
     event.preventDefault();
     const expenseHeadId = draft.head.subHeadId ?? draft.head.headId;
     if (expenseHeadId === null) {
-      setInvalid('Choose a category and head');
+      setInvalid('Choose a category and expense');
       return;
     }
     if (amount.error !== null) {

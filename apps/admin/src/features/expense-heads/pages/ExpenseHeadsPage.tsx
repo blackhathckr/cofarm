@@ -49,10 +49,10 @@ export function ExpenseHeadsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Expense heads</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Expense list</h1>
         <p className="text-sm text-muted-foreground">
-          What an expense is recorded against. Partners see spend by category and can open each
-          category to see its heads. An archived head stays on past entries but cannot be picked.
+          What a cost is recorded against. Partners see spend by category and can open each category
+          to see its expenses. Archived entries stay on past costs but cannot be picked.
         </p>
       </div>
 
@@ -76,12 +76,12 @@ export function ExpenseHeadsPage() {
                     setEditing({ kind: 'head', costHead });
                   }}
                 >
-                  Add head
+                  Add expense
                 </Button>
               </CardHeader>
               <CardContent className="space-y-1">
                 {topHeads(all, costHead).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No heads yet.</p>
+                  <p className="text-sm text-muted-foreground">No expenses yet.</p>
                 ) : null}
                 {topHeads(all, costHead).map((head) => (
                   <div key={head.id}>
@@ -134,7 +134,7 @@ export function ExpenseHeadsPage() {
 function dialogCopy(editing: Editing) {
   if (editing.kind === 'rename') {
     return {
-      title: 'Rename head',
+      title: 'Rename',
       description: 'Past entries show the new name too.',
       initialName: editing.head.name,
       submitLabel: 'Rename',
@@ -142,17 +142,17 @@ function dialogCopy(editing: Editing) {
   }
   if (editing.kind === 'head') {
     return {
-      title: `New head in ${COST_HEAD_LABELS[editing.costHead]}`,
+      title: `New expense in ${COST_HEAD_LABELS[editing.costHead]}`,
       description: 'Its spend counts towards this category.',
       initialName: '',
-      submitLabel: 'Add head',
+      submitLabel: 'Add expense',
     };
   }
   return {
-    title: `New sub-head under ${editing.parent.name}`,
-    description: 'Picked after the head when an expense is recorded.',
+    title: `New detail under ${editing.parent.name}`,
+    description: 'Picked after the expense when a cost is recorded.',
     initialName: '',
-    submitLabel: 'Add sub-head',
+    submitLabel: 'Add detail',
   };
 }
 
@@ -189,7 +189,7 @@ function HeadRow({ head, isSubHead, onRename, onToggleArchived, onAddSubHead }: 
       <div className="flex shrink-0 gap-1">
         {onAddSubHead === undefined || head.archived ? null : (
           <Button size="sm" variant="ghost" onClick={onAddSubHead}>
-            Add sub-head
+            Add detail
           </Button>
         )}
         <Button size="sm" variant="ghost" onClick={onRename}>

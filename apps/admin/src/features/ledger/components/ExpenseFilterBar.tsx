@@ -64,7 +64,7 @@ export function ExpenseFilterBar({ cycles, heads, value, onChange }: ExpenseFilt
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="filter-head">Head</Label>
+        <Label htmlFor="filter-head">Expense</Label>
         <Select
           value={value.expenseHeadId}
           disabled={headOptions.length === 0}
@@ -73,10 +73,10 @@ export function ExpenseFilterBar({ cycles, heads, value, onChange }: ExpenseFilt
           }}
         >
           <SelectTrigger id="filter-head" className="w-full">
-            <SelectValue placeholder="All heads" />
+            <SelectValue placeholder="All expenses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ANY_VALUE}>All heads</SelectItem>
+            <SelectItem value={ANY_VALUE}>All expenses</SelectItem>
             {headOptions.map((head) => (
               <SelectItem key={head.id} value={head.id}>
                 {head.name}
