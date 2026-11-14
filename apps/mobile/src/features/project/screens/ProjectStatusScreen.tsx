@@ -10,13 +10,11 @@ import { RefreshScreen } from '@/components/ui/RefreshScreen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { useSession } from '@/features/auth/hooks/use-session.ts';
 import { useSelectedProject } from '@/lib/selected-project.ts';
-import { ActivityLog } from '../components/ActivityLog';
 import { CycleProgress } from '../components/CycleProgress';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { ProjectCarousel } from '../components/ProjectCarousel';
 import { ProjectHeader } from '../components/ProjectHeader';
 import { UpdateFeed } from '../components/UpdateFeed';
-import { useActivityLog } from '../hooks/use-activity-log.ts';
 import { useMarkUpdateRead } from '../hooks/use-mark-update-read.ts';
 import { useProject } from '../hooks/use-project.ts';
 import { useUpdateFeed } from '../hooks/use-update-feed.ts';
@@ -36,11 +34,9 @@ export function ProjectStatusScreen({ highlightUpdateId }: ProjectStatusScreenPr
 
   const project = useProject(projectId);
   const feed = useUpdateFeed(projectId);
-  const activity = useActivityLog(projectId);
   const markUpdateRead = useMarkUpdateRead();
 
   const updates = feed.items;
-  const entries = activity.items;
   const openUpdate = updates.find((update) => update.id === openUpdateId) ?? null;
   const documentIds = (
     openUpdate === null
@@ -85,9 +81,9 @@ export function ProjectStatusScreen({ highlightUpdateId }: ProjectStatusScreenPr
       contentContainerClassName="gap-5 px-5 pt-3 pb-10"
       refreshControl={
         <RefreshControl
-          refreshing={project.isRefetching || feed.isRefetching || activity.isRefetching}
+          refreshing={project.isRefetching || feed.isRefetching}
           onRefresh={() => {
-            void Promise.all([project.refetch(), feed.refetch(), activity.refetch()]);
+            void Promise.all([project.refetch(), feed.refetch()]);
             void queryClient.invalidateQueries({ queryKey: ['documents'] });
           }}
         />
@@ -143,15 +139,6 @@ export function ProjectStatusScreen({ highlightUpdateId }: ProjectStatusScreenPr
       />
 
       <PhotoGallery documentIds={documentIds} isSingleUpdate={openUpdate !== null} />
-
-      <ActivityLog
-        entries={entries}
-        hasMore={activity.hasNextPage}
-        isLoadingMore={activity.isFetchingNextPage}
-        onLoadMore={() => {
-          void activity.fetchNextPage();
-        }}
-      />
     </ScrollView>
   );
 }

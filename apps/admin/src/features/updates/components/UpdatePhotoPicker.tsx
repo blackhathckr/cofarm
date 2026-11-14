@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DocumentImage } from '@/components/DocumentImage';
 import { ImageViewerDialog } from '@/components/ImageViewerDialog';
 import { useDocumentUpload } from '@/lib/document-upload.ts';
-import { acceptAttribute, checkUpload, IMAGE_MIMES } from '@/lib/upload-limits.ts';
+import { acceptAttribute, checkUpload, UPDATE_MEDIA_MIMES } from '@/lib/upload-limits.ts';
 
 type UpdatePhotoPickerProps = {
   projectId: string;
@@ -33,7 +33,7 @@ export function UpdatePhotoPicker({
     const accepted: File[] = [];
 
     for (const file of files.slice(0, room)) {
-      const checked = checkUpload(file, IMAGE_MIMES);
+      const checked = checkUpload(file, UPDATE_MEDIA_MIMES);
       if ('rejection' in checked) refused.push(checked.rejection);
       else accepted.push(file);
     }
@@ -48,7 +48,7 @@ export function UpdatePhotoPicker({
         projectId,
         type: 'update_photo',
         file,
-        allowed: IMAGE_MIMES,
+        allowed: UPDATE_MEDIA_MIMES,
       });
       added.push(stored.id);
     }
@@ -99,7 +99,7 @@ export function UpdatePhotoPicker({
           }}
         >
           <ImagePlus />
-          {upload.isPending ? 'Uploading…' : 'Add photos'}
+          {upload.isPending ? 'Uploading…' : 'Add photos or video'}
         </Button>
       </div>
 
@@ -108,7 +108,7 @@ export function UpdatePhotoPicker({
         type="file"
         multiple
         hidden
-        accept={acceptAttribute(IMAGE_MIMES)}
+        accept={acceptAttribute(UPDATE_MEDIA_MIMES)}
         onChange={(event) => {
           const files = [...(event.target.files ?? [])];
           event.target.value = '';
@@ -117,7 +117,7 @@ export function UpdatePhotoPicker({
       />
 
       <p className="text-xs text-muted-foreground">
-        {`${documentIds.length.toString()} of ${MAX_UPDATE_PHOTOS.toString()} photos. JPEG, PNG, WebP or HEIC up to 25 MiB each.`}
+        {`${documentIds.length.toString()} of ${MAX_UPDATE_PHOTOS.toString()} attached. Photos up to 25 MiB, MP4 video up to 200 MiB.`}
       </p>
 
       <ImageViewerDialog

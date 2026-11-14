@@ -19,7 +19,7 @@ export function MessageComposer({ isSending, errorMessage, onSend }: MessageComp
   const canSend = body.length > 0 && !isSending;
 
   return (
-    <View className="gap-2 border-t border-separator bg-surface px-4 pt-2 pb-3">
+    <View className="gap-2 border-t border-separator bg-background px-4 pt-2 pb-3">
       {errorMessage === null ? null : (
         <Text className="px-1 text-sm text-danger" accessibilityRole="alert">
           {errorMessage}
@@ -28,7 +28,7 @@ export function MessageComposer({ isSending, errorMessage, onSend }: MessageComp
 
       <View className="flex-row items-end gap-2">
         <TextInput
-          className="max-h-28 flex-1 rounded-3xl border border-border bg-background px-4 py-2.5 text-base text-foreground"
+          className="max-h-28 flex-1 rounded-3xl bg-surface px-4 py-2.5 text-base text-foreground"
           value={draft}
           onChangeText={setDraft}
           maxLength={MAX_MESSAGE_LENGTH}

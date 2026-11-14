@@ -75,6 +75,7 @@ export const downloadTicketSchema = z.object({
   documentId: uuidSchema,
   downloadUrl: z.string(),
   originalName: z.string(),
+  mime: documentMimeSchema,
   expiresInSeconds: z.number().int().positive(),
 });
 

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Slot } from 'expo-router';
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,6 +9,7 @@ import { withUniwind } from 'uniwind';
 
 import { armForegroundNotifications } from '@/lib/notifications.ts';
 import { ApiError } from '@/lib/api-client.ts';
+import { initThemePreference, useThemePreference } from '@/lib/theme-preference.ts';
 import '../global.css';
 
 // withUniwind gives a third-party component the className prop, so nothing in
@@ -23,16 +25,24 @@ const queryClient = new QueryClient({
   },
 });
 
-// Cold-start concern, so it runs at module load rather than from a screen.
+// Cold-start concerns, so they run at module load rather than from a screen.
 armForegroundNotifications();
+initThemePreference();
 
 export default function RootLayout() {
+  const { scheme } = useThemePreference();
+
+  // Light icons on a dark theme and the reverse, whatever the phone itself is set to.
+  useEffect(() => {
+    StatusBar.setStyle(scheme === 'dark' ? 'light' : 'dark');
+  }, [scheme]);
+
   return (
     <Root className="flex-1">
       <SafeAreaProvider>
         <HeroUINativeProvider>
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="auto" />
+            <StatusBar />
             <Slot />
           </QueryClientProvider>
         </HeroUINativeProvider>

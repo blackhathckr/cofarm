@@ -18,7 +18,7 @@ export default function TabsLayout() {
   usePushRegistration();
   const accent = useThemeColor('accent');
   const muted = useThemeColor('muted');
-  const surface = useThemeColor('surface');
+  const background = useThemeColor('background');
   const border = useThemeColor('border');
 
   if (session.user === null) return <Redirect href="/sign-in" />;
@@ -31,7 +31,7 @@ export default function TabsLayout() {
         // theme colour can be a platform object rather than a string.
         ...(typeof accent === 'string' ? { tabBarActiveTintColor: accent } : {}),
         ...(typeof muted === 'string' ? { tabBarInactiveTintColor: muted } : {}),
-        tabBarStyle: { backgroundColor: surface, borderTopColor: border },
+        tabBarStyle: { backgroundColor: background, borderTopColor: border },
       }}
     >
       {TABS.map((tab) => (

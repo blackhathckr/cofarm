@@ -27,6 +27,19 @@ function Frame({ documentId, alt }: { documentId: string; alt: string }) {
 
   if (ticket.data === undefined) return <Skeleton className="viewer-frame-pending w-full" />;
 
+  if (ticket.data.mime.startsWith('video/')) {
+    return (
+      <video
+        src={ticket.data.downloadUrl}
+        controls
+        autoPlay
+        playsInline
+        aria-label={alt}
+        className="viewer-frame w-auto max-w-full"
+      />
+    );
+  }
+
   return (
     <img
       src={ticket.data.downloadUrl}

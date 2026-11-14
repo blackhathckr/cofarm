@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Clip } from './Clip';
 import { Icon } from './Icon';
 import { Photo as PhotoImage } from './Photo';
 import type { Photo } from './PhotoGrid';
@@ -52,7 +53,11 @@ export function PhotoLightbox({ photo, position, total, onClose, onStep }: Photo
           </View>
 
           <View className="flex-1 items-center justify-center">
-            {url === '' ? null : (
+            {url !== '' && photo?.isVideo === true ? (
+              <Clip key={url} url={url} className="h-full w-full" />
+            ) : null}
+
+            {url === '' || photo?.isVideo === true ? null : (
               <PhotoImage
                 source={{ uri: url }}
                 className="h-full w-full"
@@ -66,7 +71,7 @@ export function PhotoLightbox({ photo, position, total, onClose, onStep }: Photo
               />
             )}
 
-            {state === 'loading' ? (
+            {state === 'loading' && photo?.isVideo !== true ? (
               <View className="absolute">
                 <Spinner />
               </View>

@@ -21,11 +21,13 @@ export function ProjectCarousel({ updates, cycleNo }: ProjectCarouselProps) {
     newest.length > 0,
   );
 
-  if (gallery.photos.length === 0) return null;
+  const stills = gallery.photos.filter((photo) => photo.isVideo !== true);
+  if (stills.length === 0) return null;
 
   return (
     <PhotoCarousel
-      photos={gallery.photos.map((photo, index) => {
+      photos={stills.map((photo) => {
+        const index = gallery.photos.indexOf(photo);
         const title = newest[index]?.title;
         return title === undefined ? photo : { ...photo, caption: title };
       })}

@@ -6,6 +6,9 @@ export const DOCUMENT_MIMES: readonly DocumentMime[] = documentMimeSchema.option
 
 export const IMAGE_MIMES = documentMimeSchema.options.filter((mime) => mime.startsWith('image/'));
 
+/** What a project update may carry: field photographs and short clips. */
+export const UPDATE_MEDIA_MIMES: readonly DocumentMime[] = [...IMAGE_MIMES, 'video/mp4'];
+
 export const PDF_MIME: DocumentMime = 'application/pdf';
 
 export function acceptAttribute(mimes: readonly DocumentMime[]): string {

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useThemeColor } from 'heroui-native';
 import { Pressable, View } from 'react-native';
 
+import { Icon } from './Icon';
 import { Photo as PhotoImage } from './Photo';
 
 import { PhotoLightbox } from './PhotoLightbox';
@@ -9,6 +11,7 @@ export type Photo = {
   id: string;
   url: string;
   caption?: string;
+  isVideo?: boolean;
 };
 
 type PhotoGridProps = {
@@ -37,6 +40,7 @@ function inRowsOf(photos: readonly Photo[], columns: number): PhotoRow[] {
  */
 export function PhotoGrid({ photos, columns = DEFAULT_COLUMNS }: PhotoGridProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const playMark = useThemeColor('accent-foreground');
   const open = openIndex === null ? null : (photos[openIndex] ?? null);
 
   // Too few photos to fill a row and they share the full width; past that the
@@ -52,16 +56,24 @@ export function PhotoGrid({ photos, columns = DEFAULT_COLUMNS }: PhotoGridProps)
               key={photo.id}
               className="aspect-square flex-1 overflow-hidden rounded-2xl bg-surface-secondary"
               accessibilityRole="imagebutton"
-              accessibilityLabel={photo.caption ?? 'Farm photograph'}
+              accessibilityLabel={
+                photo.caption ?? (photo.isVideo === true ? 'Farm video' : 'Farm photograph')
+              }
               onPress={() => {
                 setOpenIndex(row.start + offset);
               }}
             >
-              <PhotoImage
-                source={{ uri: photo.url }}
-                className="h-full w-full"
-                contentFit="cover"
-              />
+              {photo.isVideo === true ? (
+                <View className="h-full w-full items-center justify-center bg-sand-800">
+                  <Icon name="play" color={playMark} size={26} />
+                </View>
+              ) : (
+                <PhotoImage
+                  source={{ uri: photo.url }}
+                  className="h-full w-full"
+                  contentFit="cover"
+                />
+              )}
             </Pressable>
           ))}
 

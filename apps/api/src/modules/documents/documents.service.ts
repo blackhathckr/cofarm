@@ -1,4 +1,5 @@
 import {
+  documentMimeSchema,
   isDocumentMime,
   maxUploadBytes,
   type Document,
@@ -151,6 +152,8 @@ export async function issueDownloadUrl(
     documentId: row.id,
     downloadUrl: await storage.presignDownload(row.storageKey, row.originalName),
     originalName: row.originalName,
+    // Stored only after passing this schema on upload, so it parses back.
+    mime: documentMimeSchema.parse(row.mime),
     expiresInSeconds: env.SIGNED_URL_TTL_SECONDS,
   };
 }

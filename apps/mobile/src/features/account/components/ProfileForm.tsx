@@ -30,7 +30,7 @@ export function ProfileForm({
   }
 
   return (
-    <View className="gap-3 rounded-3xl bg-surface p-5">
+    <View className="gap-3 rounded-3xl bg-surface-secondary p-5">
       <SectionHeader title="Your details" />
 
       <View className="gap-2">

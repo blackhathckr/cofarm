@@ -30,6 +30,7 @@ export function usePhotoUrls(documentIds: readonly string[], isEnabled: boolean)
       photos: tickets.map((ticket, index) => ({
         id: documentIds[index] ?? `photo-${String(index)}`,
         url: ticket.data?.downloadUrl ?? '',
+        isVideo: ticket.data?.mime.startsWith('video/') ?? false,
         ...(ticket.isError ? { caption: 'This photograph could not be loaded.' } : {}),
       })),
       isPending: isEnabled && tickets.some((ticket) => ticket.isPending),

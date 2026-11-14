@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { DeleteAccountDialog } from '../components/DeleteAccountDialog';
 import { MembershipList } from '../components/MembershipList';
 import { ProfileForm } from '../components/ProfileForm';
+import { ThemePicker } from '../components/ThemePicker';
 import { useDeleteAccount } from '../hooks/use-delete-account.ts';
 import { useDeletionPolicy } from '../hooks/use-deletion-policy.ts';
 import { useProfile, useUpdateProfile } from '../hooks/use-profile.ts';
@@ -67,6 +68,8 @@ export function AccountScreen() {
       />
 
       <MembershipList memberships={account.memberships} />
+
+      <ThemePicker />
 
       <View className="gap-2">
         <Button

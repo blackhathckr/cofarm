@@ -18,6 +18,7 @@ const GLYPHS = {
   download: { set: 'feather', glyph: 'download' },
   user: { set: 'feather', glyph: 'user' },
   send: { set: 'feather', glyph: 'send' },
+  play: { set: 'feather', glyph: 'play' },
   close: { set: 'feather', glyph: 'x' },
   chevronLeft: { set: 'feather', glyph: 'chevron-left' },
   chevronRight: { set: 'feather', glyph: 'chevron-right' },
