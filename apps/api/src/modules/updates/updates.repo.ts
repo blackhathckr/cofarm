@@ -11,6 +11,7 @@ import {
   lte,
   or,
   type SQL,
+  sql,
 } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
@@ -50,7 +51,18 @@ export type ActivityFilters = {
   cursor: FeedCursor | undefined;
 };
 
-export type UpdateWithPhotoCount = UpdateRow & { photoCount: number };
+export type UpdateWithPhotoCount = UpdateRow & { photoCount: number; videoCount: number };
+
+const mediaCounts = {
+  photoCount:
+    sql<number>`count(${documents.id}) filter (where ${documents.mime} like 'image/%')`.mapWith(
+      Number,
+    ),
+  videoCount:
+    sql<number>`count(${documents.id}) filter (where ${documents.mime} like 'video/%')`.mapWith(
+      Number,
+    ),
+};
 
 const updateColumns = {
   id: projectUpdates.id,
@@ -95,9 +107,10 @@ export async function listUpdates(
   }
 
   return db
-    .select({ ...updateColumns, photoCount: count(updatePhotos.id) })
+    .select({ ...updateColumns, ...mediaCounts })
     .from(projectUpdates)
     .leftJoin(updatePhotos, eq(updatePhotos.updateId, projectUpdates.id))
+    .leftJoin(documents, eq(documents.id, updatePhotos.documentId))
     .where(and(...conditions))
     .groupBy(projectUpdates.id)
     .orderBy(desc(projectUpdates.activityDate), desc(projectUpdates.id))
@@ -110,9 +123,10 @@ export async function findUpdate(
   updateId: string,
 ): Promise<UpdateWithPhotoCount | null> {
   const [row] = await db
-    .select({ ...updateColumns, photoCount: count(updatePhotos.id) })
+    .select({ ...updateColumns, ...mediaCounts })
     .from(projectUpdates)
     .leftJoin(updatePhotos, eq(updatePhotos.updateId, projectUpdates.id))
+    .leftJoin(documents, eq(documents.id, updatePhotos.documentId))
     .where(
       and(
         eq(projectUpdates.id, updateId),

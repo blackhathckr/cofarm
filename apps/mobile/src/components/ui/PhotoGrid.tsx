@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { useThemeColor } from 'heroui-native';
 import { Pressable, View } from 'react-native';
 
-import { Icon } from './Icon';
 import { Photo as PhotoImage } from './Photo';
 
 import { PhotoLightbox } from './PhotoLightbox';
+import { VideoTile } from './VideoTile';
 
 export type Photo = {
   id: string;
@@ -17,6 +16,8 @@ export type Photo = {
 type PhotoGridProps = {
   photos: readonly Photo[];
   columns?: number;
+  /** Told which photograph was opened, e.g. to record that its update was seen. */
+  onOpen?: (photoId: string) => void;
 };
 
 const DEFAULT_COLUMNS = 3;
@@ -38,9 +39,8 @@ function inRowsOf(photos: readonly Photo[], columns: number): PhotoRow[] {
  * Photo URLs are short-lived signed links, so a grid holds whatever the caller
  * fetched and does not cache them beyond the screen.
  */
-export function PhotoGrid({ photos, columns = DEFAULT_COLUMNS }: PhotoGridProps) {
+export function PhotoGrid({ photos, columns = DEFAULT_COLUMNS, onOpen }: PhotoGridProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const playMark = useThemeColor('accent-foreground');
   const open = openIndex === null ? null : (photos[openIndex] ?? null);
 
   // Too few photos to fill a row and they share the full width; past that the
@@ -61,12 +61,11 @@ export function PhotoGrid({ photos, columns = DEFAULT_COLUMNS }: PhotoGridProps)
               }
               onPress={() => {
                 setOpenIndex(row.start + offset);
+                onOpen?.(photo.id);
               }}
             >
               {photo.isVideo === true ? (
-                <View className="h-full w-full items-center justify-center bg-sand-800">
-                  <Icon name="play" color={playMark} size={26} />
-                </View>
+                <VideoTile url={photo.url} />
               ) : (
                 <PhotoImage
                   source={{ uri: photo.url }}

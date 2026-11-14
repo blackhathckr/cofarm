@@ -6,6 +6,7 @@
   "exports": {
     "./cycle": "./src/cycle.ts",
     "./id": "./src/id.ts",
+    "./media-label": "./src/media-label.ts",
     "./money": "./src/money.ts",
     "./name": "./src/name.ts",
     "./pnl": "./src/pnl.ts",

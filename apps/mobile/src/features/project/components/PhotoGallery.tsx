@@ -8,9 +8,10 @@ import { usePhotoUrls } from '../hooks/use-photo-urls.ts';
 type PhotoGalleryProps = {
   documentIds: readonly string[];
   isSingleUpdate: boolean;
+  onOpen: (documentId: string) => void;
 };
 
-export function PhotoGallery({ documentIds, isSingleUpdate }: PhotoGalleryProps) {
+export function PhotoGallery({ documentIds, isSingleUpdate, onOpen }: PhotoGalleryProps) {
   const gallery = usePhotoUrls(documentIds, documentIds.length > 0);
 
   return (
@@ -34,7 +35,7 @@ export function PhotoGallery({ documentIds, isSingleUpdate }: PhotoGalleryProps)
 
       {gallery.isPending ? <Loading /> : null}
 
-      <PhotoGrid photos={gallery.photos} />
+      <PhotoGrid photos={gallery.photos} onOpen={onOpen} />
 
       {gallery.unresolvedCount > 0 ? (
         <Text className="text-xs text-muted">

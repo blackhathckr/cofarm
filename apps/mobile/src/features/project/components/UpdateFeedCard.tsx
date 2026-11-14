@@ -1,4 +1,5 @@
 import type { MilestoneTag, UpdateFeedItem } from '@cofarm/contracts/updates';
+import { mediaLabel } from '@cofarm/core/media-label';
 import { cn } from 'cn';
 import { Chip } from 'heroui-native';
 import { Pressable, Text, View } from 'react-native';
@@ -29,14 +30,14 @@ const TAG_LABELS: Record<MilestoneTag, string> = {
 };
 
 export function UpdateFeedCard({ update, isOpen, isHighlighted, onPress }: UpdateFeedCardProps) {
-  const hasPhotos = update.photoCount > 0;
+  const media = mediaLabel(update.photoCount, update.videoCount);
 
   return (
     <Pressable
       className={cn('gap-2 rounded-3xl bg-surface p-4', borderClass(isHighlighted, isOpen))}
       accessibilityRole="button"
-      accessibilityLabel={`${update.title}. ${String(update.photoCount)} photographs.`}
-      disabled={!hasPhotos}
+      accessibilityLabel={`${update.title}. ${media ?? 'No attachments'}.`}
+      disabled={media === null}
       onPress={onPress}
     >
       {isHighlighted ? (
@@ -59,13 +60,11 @@ export function UpdateFeedCard({ update, isOpen, isHighlighted, onPress }: Updat
         {update.description}
       </Text>
 
-      {hasPhotos ? (
+      {media === null ? null : (
         <Text className="text-xs font-bold text-clay-700">
-          {isOpen
-            ? 'Showing these photographs below'
-            : `${String(update.photoCount)} photographs · tap to view`}
+          {isOpen ? 'Showing these below' : `${media} · tap to view`}
         </Text>
-      ) : null}
+      )}
     </Pressable>
   );
 }

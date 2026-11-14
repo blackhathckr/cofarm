@@ -1,4 +1,5 @@
 import type { UpdateSummary } from '@cofarm/contracts/updates';
+import { mediaLabel } from '@cofarm/core/media-label';
 import { Images } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +38,7 @@ export function UpdateCard({ summary, onOpen }: UpdateCardProps) {
           <span className="tabular">{summary.activityDate}</span>
           <span className="inline-flex items-center gap-1">
             <Images className="size-3" />
-            {`${summary.photoCount.toString()} photos`}
+            {mediaLabel(summary.photoCount, summary.videoCount) ?? 'No attachments'}
           </span>
           {seenBy === null ? null : <span>{seenBy}</span>}
         </div>

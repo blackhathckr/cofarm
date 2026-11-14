@@ -113,6 +113,7 @@ export async function listFeed(
       activityDate: row.activityDate,
       publishedAt: row.publishedAt?.toISOString() ?? null,
       photoCount: row.photoCount,
+      videoCount: row.videoCount,
       photoDocumentIds: photos
         .filter((photo) => photo.updateId === row.id)
         .map((photo) => photo.documentId),
@@ -437,6 +438,7 @@ function toUpdate(row: repo.UpdateWithPhotoCount, photos: repo.PhotoRow[]): Proj
     notifyPartners: row.notifyPartners,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     photoCount: row.photoCount,
+    videoCount: row.videoCount,
     photos: photos.map((photo) => ({
       id: photo.id,
       documentId: photo.documentId,
@@ -461,6 +463,7 @@ function toSummary(
     notifyPartners: row.notifyPartners,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     photoCount: row.photoCount,
+    videoCount: row.videoCount,
     seenByCount: receipts?.readCount ?? null,
     recipientCount: receipts?.totalCount ?? null,
   };

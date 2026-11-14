@@ -1,5 +1,6 @@
 import type { UpdateFeedItem } from '@cofarm/contracts/updates';
 import { Pressable, Text, View } from 'react-native';
+import { mediaLabel } from '@cofarm/core/media-label';
 
 type LatestUpdateCardProps = {
   update: UpdateFeedItem | null;
@@ -35,9 +36,9 @@ export function LatestUpdateCard({ update, onPress }: LatestUpdateCardProps) {
         {update.description}
       </Text>
       <Text className="text-xs font-bold text-clay-700">
-        {update.photoCount === 0
+        {mediaLabel(update.photoCount, update.videoCount) === null
           ? 'Open in project'
-          : `${String(update.photoCount)} photographs · open in project`}
+          : `${mediaLabel(update.photoCount, update.videoCount) ?? ''} · open in project`}
       </Text>
     </Pressable>
   );

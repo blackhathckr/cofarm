@@ -45,6 +45,7 @@ export const projectUpdateSchema = z.object({
   notifyPartners: z.boolean(),
   publishedAt: timestampSchema.nullable(),
   photoCount: z.number().int().nonnegative(),
+  videoCount: z.number().int().nonnegative(),
   photos: z.array(updatePhotoSchema),
   createdAt: timestampSchema,
 });
@@ -59,6 +60,7 @@ export const updateSummarySchema = z.object({
   notifyPartners: z.boolean(),
   publishedAt: timestampSchema.nullable(),
   photoCount: z.number().int().nonnegative(),
+  videoCount: z.number().int().nonnegative(),
   /** Null while the update is a draft: nobody has been addressed yet. */
   seenByCount: z.number().int().nonnegative().nullable(),
   recipientCount: z.number().int().nonnegative().nullable(),
@@ -72,6 +74,7 @@ export const updateFeedItemSchema = z.object({
   activityDate: dateSchema,
   publishedAt: timestampSchema.nullable(),
   photoCount: z.number().int().nonnegative(),
+  videoCount: z.number().int().nonnegative(),
   photoDocumentIds: z.array(uuidSchema),
 });
 

@@ -138,7 +138,14 @@ export function ProjectStatusScreen({ highlightUpdateId }: ProjectStatusScreenPr
         }}
       />
 
-      <PhotoGallery documentIds={documentIds} isSingleUpdate={openUpdate !== null} />
+      <PhotoGallery
+        documentIds={documentIds}
+        isSingleUpdate={openUpdate !== null}
+        onOpen={(documentId) => {
+          const owner = updates.find((update) => update.photoDocumentIds.includes(documentId));
+          if (owner !== undefined) markUpdateRead.mutate({ projectId, updateId: owner.id });
+        }}
+      />
     </ScrollView>
   );
 }
