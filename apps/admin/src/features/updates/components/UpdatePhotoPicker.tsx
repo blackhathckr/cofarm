@@ -93,13 +93,13 @@ export function UpdatePhotoPicker({
           type="button"
           variant="outline"
           disabled={disabled === true || upload.isPending || room <= 0}
-          className="size-24 flex-col gap-1 text-xs"
+          className="size-24 flex-col gap-1 px-2 text-center text-xs leading-tight whitespace-normal"
           onClick={() => {
             picker.current?.click();
           }}
         >
           <ImagePlus />
-          {upload.isPending ? 'Uploading…' : 'Add photos or video'}
+          {upload.isPending ? 'Uploading…' : 'Add photo or video'}
         </Button>
       </div>
 
