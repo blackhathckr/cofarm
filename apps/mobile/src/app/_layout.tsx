@@ -25,14 +25,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Cold-start concerns, so they run at module load rather than from a screen.
 armForegroundNotifications();
 initThemePreference();
 
 export default function RootLayout() {
   const { scheme } = useThemePreference();
 
-  // Light icons on a dark theme and the reverse, whatever the phone itself is set to.
   useEffect(() => {
     StatusBar.setStyle(scheme === 'dark' ? 'light' : 'dark');
   }, [scheme]);

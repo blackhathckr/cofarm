@@ -10,7 +10,6 @@ type VideoTileProps = {
   url: string;
 };
 
-/** A clip's opening frame with a play mark, so a video reads as one before it is tapped. */
 export function VideoTile({ url }: VideoTileProps) {
   const player = useVideoPlayer(url);
   const playMark = useThemeColor('accent-foreground');

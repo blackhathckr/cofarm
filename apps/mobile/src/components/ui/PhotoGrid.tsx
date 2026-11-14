@@ -16,7 +16,6 @@ export type Photo = {
 type PhotoGridProps = {
   photos: readonly Photo[];
   columns?: number;
-  /** Told which photograph was opened, e.g. to record that its update was seen. */
   onOpen?: (photoId: string) => void;
 };
 
