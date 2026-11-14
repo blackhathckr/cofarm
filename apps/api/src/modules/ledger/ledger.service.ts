@@ -2,6 +2,7 @@ import { ERROR_CODES } from '@cofarm/contracts/errors';
 import {
   costTotalsSchema,
   type ContributionPage,
+  type CostLine,
   type CostTotals,
   type ExpensePage,
   type LedgerEntry,
@@ -27,6 +28,7 @@ import { ADMIN_SCOPE, type ProjectScope } from '../../lib/project-scope.ts';
 import { currentContext } from '../../lib/request-context.ts';
 import * as audit from '../audit/audit.service.ts';
 import * as documents from '../documents/documents.service.ts';
+import * as expenseHeads from '../expense-heads/expense-heads.service.ts';
 import * as repo from './ledger.repo.ts';
 
 export type CycleCosts = {
@@ -51,6 +53,7 @@ export async function recordExpense(
   assertNotFuture(input.entryDate);
   await assertCycleOpen(projectId, input.cycleId);
   await assertDocument(projectId, input.documentId);
+  const costHead = await expenseHeads.costHeadForExpense(input.expenseHeadId);
 
   const created = await repo.insertEntry({
     id: newId(),
@@ -58,7 +61,8 @@ export async function recordExpense(
     cycleId: input.cycleId ?? null,
     membershipId: null,
     type: 'expense',
-    costHead: input.costHead,
+    costHead,
+    expenseHeadId: input.expenseHeadId,
     amountPaise: BigInt(input.amountPaise),
     entryDate: input.entryDate,
     note: input.note ?? null,
@@ -94,14 +98,17 @@ export async function listExpenses(
     from: query.from,
     to: query.to,
   };
+  const headFilter =
+    query.expenseHeadId === undefined ? {} : { expenseHeadId: query.expenseHeadId };
 
   const [rows, headRows] = await Promise.all([
     repo.listEntries(scope, {
       ...filters,
+      ...headFilter,
       limit: query.limit + 1,
       cursor: decodeCursor(query.cursor),
     }),
-    repo.totalsByCostHead(scope, filters),
+    repo.totalsByCostHead(scope, { ...filters, ...headFilter }),
   ]);
 
   const hasMore = rows.length > query.limit;
@@ -383,6 +390,7 @@ async function reverseEntry(
     membershipId: original.membershipId,
     type,
     costHead: original.costHead,
+    expenseHeadId: original.expenseHeadId,
     amountPaise: original.amountPaise,
     entryDate: original.entryDate,
     note: input.note,
@@ -473,6 +481,7 @@ function toEntryDto(row: repo.LedgerEntryRow, reversedByEntryId: string | null):
     membershipId: row.membershipId,
     type: row.type,
     costHead: row.costHead,
+    expenseHeadId: row.expenseHeadId,
     amountPaise: toPaiseString(row.amountPaise),
     entryDate: row.entryDate,
     note: row.note,
@@ -548,18 +557,17 @@ function decodeCursor(raw: string | undefined): repo.EntryCursor | undefined {
   return { entryDate: cursor.cursorDate(decoded.sortKey), id: decoded.id };
 }
 
-export type CostHeadTotal = { head: CostHead; amountPaise: bigint };
-
-/** Flat form of `cycleCosts`, for callers that render a cost table. */
-export async function costTotalsByHead(input: {
-  projectId: string;
-  cycleId: string;
-}): Promise<{ totals: CostHeadTotal[]; totalCostPaise: bigint }> {
-  const costs = await cycleCosts(input.projectId, input.cycleId);
-  const totals = COST_HEADS.filter((head) => (costs.costsByHead[head] ?? 0n) !== 0n).map(
-    (head) => ({ head, amountPaise: costs.costsByHead[head] ?? 0n }),
-  );
-  return { totals, totalCostPaise: costs.totalCostPaise };
+/** A cycle's spend per expense head, named as the heads read now. */
+export async function cycleCostLines(projectId: string, cycleId: string): Promise<CostLine[]> {
+  const rows = await repo.totalsByExpenseHead(projectId, cycleId);
+  return rows.flatMap((row): CostLine[] => {
+    if (row.costHead === null) return [];
+    const amountPaise = toPaiseString(BigInt(row.totalPaise ?? '0'));
+    if (row.parentName !== null) {
+      return [{ costHead: row.costHead, head: row.parentName, subHead: row.headName, amountPaise }];
+    }
+    return [{ costHead: row.costHead, head: row.headName, subHead: null, amountPaise }];
+  });
 }
 
 /** Total already paid out for a cycle, so a second disbursement can be refused. */

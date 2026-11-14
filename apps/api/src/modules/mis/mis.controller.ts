@@ -1,7 +1,6 @@
 import type {
   CreateMisBody,
   ListMisQuery,
-  MisComposePayload,
   MisLatest,
   MisPage,
   MisReport,
@@ -89,10 +88,4 @@ export async function receipts(
     request.params.projectId,
     request.params.reportId,
   );
-}
-
-export async function compose(
-  request: FastifyRequest<{ Params: MisReportParams }>,
-): Promise<MisComposePayload> {
-  return service.composeReport(request.params.projectId, request.params.reportId);
 }

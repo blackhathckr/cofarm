@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { documents } from './documents.ts';
-import { milestoneTag, misSource, publishStatus } from './enums.ts';
+import { milestoneTag, publishStatus } from './enums.ts';
 import { users } from './identity.ts';
 import { cycles, projects } from './projects.ts';
 
@@ -22,13 +22,12 @@ export const misReports = pgTable(
     projectId: uuid('project_id')
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
-    month: smallint('month').notNull(),
+    quarter: smallint('quarter').notNull(),
     year: smallint('year').notNull(),
     title: text('title').notNull(),
-    narrative: text('narrative'),
-    outlook: text('outlook'),
-    source: misSource('source').notNull().default('uploaded'),
-    documentId: uuid('document_id').references(() => documents.id, { onDelete: 'restrict' }),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'restrict' }),
     status: publishStatus('status').notNull().default('draft'),
     publishedAt: timestamp('published_at', { withTimezone: true }),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
@@ -36,7 +35,7 @@ export const misReports = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex('mis_reports_project_period_key').on(table.projectId, table.year, table.month),
+    uniqueIndex('mis_reports_project_period_key').on(table.projectId, table.year, table.quarter),
     index('mis_reports_project_status_idx').on(table.projectId, table.status),
   ],
 );

@@ -1,5 +1,4 @@
 import {
-  misComposePayloadSchema,
   misPageSchema,
   misReportSchema,
   type CreateMisBody,
@@ -49,12 +48,6 @@ export function publishMisReport(projectId: string, reportId: string, idempotenc
   return request(`/v1/projects/${projectId}/mis/${reportId}/publish`, misReportSchema, {
     method: 'POST',
     idempotencyKey,
-  });
-}
-
-export function composeMisReport(projectId: string, reportId: string) {
-  return request(`/v1/projects/${projectId}/mis/${reportId}/compose`, misComposePayloadSchema, {
-    method: 'POST',
   });
 }
 

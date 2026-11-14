@@ -1,18 +1,4 @@
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  lt,
-  lte,
-  or,
-  type SQL,
-  sql,
-} from 'drizzle-orm';
+import { and, desc, eq, inArray, lt, or, type SQL, sql } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import { withinScope } from '../../db/scoped.ts';
@@ -156,41 +142,6 @@ export async function photosForUpdates(updateIds: readonly string[]): Promise<Ph
     .orderBy(updatePhotos.sortOrder, updatePhotos.id);
 }
 
-export type PeriodPhotoRow = {
-  documentId: string;
-  caption: string | null;
-  activityDate: string;
-};
-
-/** Photographs on published updates whose activity date falls in the period. */
-export async function photosInPeriod(filters: {
-  projectId: string;
-  fromDate: string;
-  toDate: string;
-  limit: number;
-}): Promise<PeriodPhotoRow[]> {
-  return db
-    .select({
-      documentId: updatePhotos.documentId,
-      caption: updatePhotos.caption,
-      activityDate: projectUpdates.activityDate,
-    })
-    .from(updatePhotos)
-    .innerJoin(projectUpdates, eq(projectUpdates.id, updatePhotos.updateId))
-    .innerJoin(documents, eq(documents.id, updatePhotos.documentId))
-    .where(
-      and(
-        eq(updatePhotos.projectId, filters.projectId),
-        eq(projectUpdates.status, 'published'),
-        gte(projectUpdates.activityDate, filters.fromDate),
-        lte(projectUpdates.activityDate, filters.toDate),
-        isNotNull(documents.confirmedAt),
-      ),
-    )
-    .orderBy(asc(projectUpdates.activityDate), asc(updatePhotos.sortOrder), asc(updatePhotos.id))
-    .limit(filters.limit);
-}
-
 export async function insertUpdate(row: typeof projectUpdates.$inferInsert): Promise<UpdateRow> {
   const [created] = await db.insert(projectUpdates).values(row).returning();
   if (created === undefined) throw new Error('Insert returned no project update row');
@@ -283,23 +234,4 @@ export async function cycleIsInProject(cycleId: string, projectId: string): Prom
     .where(and(eq(cycles.id, cycleId), eq(cycles.projectId, projectId)))
     .limit(1);
   return row !== undefined;
-}
-
-export async function countPublishedInPeriod(
-  projectId: string,
-  fromDate: string,
-  toDate: string,
-): Promise<number> {
-  const [row] = await db
-    .select({ total: count() })
-    .from(projectUpdates)
-    .where(
-      and(
-        eq(projectUpdates.projectId, projectId),
-        eq(projectUpdates.status, 'published'),
-        gte(projectUpdates.activityDate, fromDate),
-        lte(projectUpdates.activityDate, toDate),
-      ),
-    );
-  return row?.total ?? 0;
 }

@@ -46,7 +46,6 @@ export const costHead = pgEnum('cost_head', [
 ]);
 
 export const publishStatus = pgEnum('publish_status', ['draft', 'published']);
-export const misSource = pgEnum('mis_source', ['generated', 'uploaded']);
 
 export const documentType = pgEnum('document_type', [
   'mis_report',

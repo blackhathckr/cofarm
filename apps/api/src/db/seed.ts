@@ -11,6 +11,7 @@ import { env } from '../lib/env.ts';
 import { logger } from '../lib/logger.ts';
 import { hashPassword } from '../lib/password.ts';
 import { closeDatabase, db } from './client.ts';
+import { seedExpenseHeads } from './expense-heads.ts';
 import {
   cycleMilestones,
   cycles,
@@ -253,6 +254,7 @@ try {
   const projectIds = await seedProjects();
   await seedAdmin(roleIds);
   await seedPartners(projectIds, roleIds);
+  await seedExpenseHeads();
 
   logger.info(
     {

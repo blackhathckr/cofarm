@@ -2,7 +2,6 @@ import type { CreateMisBody, UpdateMisBody } from '@cofarm/contracts/mis';
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import {
-  composeMisReport,
   createMisReport,
   deleteMisReport,
   publishMisReport,
@@ -54,17 +53,6 @@ export function usePublishMisReport(projectId: string, reportId: string) {
   return useMutation({
     mutationFn: (idempotencyKey: string) => publishMisReport(projectId, reportId, idempotencyKey),
     onSettled: () => {
-      invalidateMis(queryClient, projectId);
-    },
-  });
-}
-
-export function useComposeMisReport(projectId: string, reportId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => composeMisReport(projectId, reportId),
-    onSuccess: () => {
       invalidateMis(queryClient, projectId);
     },
   });

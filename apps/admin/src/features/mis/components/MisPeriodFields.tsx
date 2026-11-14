@@ -1,3 +1,5 @@
+import { financialYearLabel, misPeriodOf } from '@cofarm/contracts/mis';
+
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -7,66 +9,68 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const QUARTERS = [
+  { quarter: 1, months: 'Apr – Jun' },
+  { quarter: 2, months: 'Jul – Sep' },
+  { quarter: 3, months: 'Oct – Dec' },
+  { quarter: 4, months: 'Jan – Mar' },
+] as const;
 const YEARS_BACK = 3;
 
-function monthName(month: number): string {
-  return new Date(Date.UTC(2000, month - 1, 1)).toLocaleString('en-IN', { month: 'long' });
-}
-
 type MisPeriodFieldsProps = {
-  month: number;
+  quarter: number;
   year: number;
   problem: string | null;
-  onMonthChange: (month: number) => void;
+  onQuarterChange: (quarter: number) => void;
   onYearChange: (year: number) => void;
 };
 
 export function MisPeriodFields({
-  month,
+  quarter,
   year,
   problem,
-  onMonthChange,
+  onQuarterChange,
   onYearChange,
 }: MisPeriodFieldsProps) {
-  const thisYear = new Date().getFullYear();
-  const years = Array.from({ length: YEARS_BACK + 1 }, (_, index) => thisYear - index);
+  const now = new Date();
+  const current = misPeriodOf(now.getFullYear(), now.getMonth() + 1).year;
+  const years = Array.from({ length: YEARS_BACK + 1 }, (_, index) => current - index);
 
   return (
     <div className="space-y-2">
       <Label>Period</Label>
       <div className="grid grid-cols-2 gap-3">
         <Select
-          value={String(month)}
+          value={String(year)}
           onValueChange={(next) => {
-            onMonthChange(Number(next));
+            onYearChange(Number(next));
           }}
         >
-          <SelectTrigger aria-label="Month">
-            <SelectValue placeholder="Month" />
+          <SelectTrigger aria-label="Financial year">
+            <SelectValue placeholder="Financial year" />
           </SelectTrigger>
           <SelectContent>
-            {MONTHS.map((option) => (
+            {years.map((option) => (
               <SelectItem key={option} value={String(option)}>
-                {monthName(option)}
+                {financialYearLabel(option)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select
-          value={String(year)}
+          value={String(quarter)}
           onValueChange={(next) => {
-            onYearChange(Number(next));
+            onQuarterChange(Number(next));
           }}
         >
-          <SelectTrigger aria-label="Year">
-            <SelectValue placeholder="Year" />
+          <SelectTrigger aria-label="Quarter">
+            <SelectValue placeholder="Quarter" />
           </SelectTrigger>
           <SelectContent>
-            {years.map((option) => (
-              <SelectItem key={option} value={String(option)}>
-                {option}
+            {QUARTERS.map((option) => (
+              <SelectItem key={option.quarter} value={String(option.quarter)}>
+                {`Q${String(option.quarter)} (${option.months})`}
               </SelectItem>
             ))}
           </SelectContent>

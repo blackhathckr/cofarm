@@ -1,14 +1,14 @@
 import type { MisReport } from '@cofarm/contracts/mis';
 import { Button, Dialog, Spinner } from 'heroui-native';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 type MisReportDialogProps = {
   report: MisReport | null;
   isOpen: boolean;
   isPending: boolean;
-  isDownloading: boolean;
-  downloadError: string | null;
-  onDownload: (documentId: string) => void;
+  isOpeningFile: boolean;
+  fileError: string | null;
+  onOpenFile: (report: MisReport) => void;
   onClose: () => void;
 };
 
@@ -16,13 +16,11 @@ export function MisReportDialog({
   report,
   isOpen,
   isPending,
-  isDownloading,
-  downloadError,
-  onDownload,
+  isOpeningFile,
+  fileError,
+  onOpenFile,
   onClose,
 }: MisReportDialogProps) {
-  const documentId = report?.documentId ?? null;
-
   return (
     <Dialog
       isOpen={isOpen}
@@ -44,44 +42,25 @@ export function MisReportDialog({
               <Dialog.Title>{report.label}</Dialog.Title>
               <Dialog.Description>{report.title}</Dialog.Description>
 
-              <ScrollView className="max-h-72" contentContainerClassName="gap-3">
-                {report.narrative === null ? null : (
-                  <Text className="text-sm leading-relaxed text-foreground">
-                    {report.narrative}
-                  </Text>
-                )}
-                {report.outlook === null ? null : (
-                  <View className="gap-1">
-                    <Text className="text-xs font-bold tracking-wider text-muted uppercase">
-                      Outlook
-                    </Text>
-                    <Text className="text-sm leading-relaxed text-foreground">
-                      {report.outlook}
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
+              <Text className="text-xs text-muted">
+                The report is an Excel workbook. It opens in Excel, Google Sheets or any spreadsheet
+                app on your phone.
+              </Text>
 
-              {downloadError === null ? null : (
+              {fileError === null ? null : (
                 <Text className="text-sm text-danger" accessibilityRole="alert">
-                  {downloadError}
+                  {fileError}
                 </Text>
               )}
 
-              {documentId === null ? (
-                <Text className="text-xs text-muted">
-                  This report has no file attached. The summary above is the full report.
-                </Text>
-              ) : (
-                <Button
-                  isDisabled={isDownloading}
-                  onPress={() => {
-                    onDownload(documentId);
-                  }}
-                >
-                  {isDownloading ? 'Opening…' : 'Download report'}
-                </Button>
-              )}
+              <Button
+                isDisabled={isOpeningFile}
+                onPress={() => {
+                  onOpenFile(report);
+                }}
+              >
+                {isOpeningFile ? 'Opening…' : 'Open report'}
+              </Button>
             </>
           )}
         </Dialog.Content>

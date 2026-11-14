@@ -20,7 +20,10 @@ export const documentMimeSchema = z.enum([
   'image/webp',
   'image/heic',
   'video/mp4',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]);
+
+export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 export type DocumentType = z.infer<typeof documentTypeSchema>;
 export type DocumentMime = z.infer<typeof documentMimeSchema>;

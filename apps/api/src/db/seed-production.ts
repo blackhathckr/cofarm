@@ -9,11 +9,13 @@ import { env } from '../lib/env.ts';
 import { logger } from '../lib/logger.ts';
 import { hashPassword } from '../lib/password.ts';
 import { closeDatabase, db } from './client.ts';
+import { seedExpenseHeads } from './expense-heads.ts';
 import { rolePermissions, roles, userRoles, users } from './schema.ts';
 
 /**
  * The only rows a live database may start with: the system roles with their
- * permissions, and one superadmin to create everything else from. Safe to
+ * permissions, one superadmin to create everything else from, and the starter
+ * expense heads. Safe to
  * re-run — it adds whatever is missing and leaves existing rows alone.
  */
 async function seedRoles(): Promise<Map<string, string>> {
@@ -63,12 +65,14 @@ async function seedSuperadmin(roleIds: Map<string, string>): Promise<boolean> {
 try {
   const roleIds = await seedRoles();
   const created = await seedSuperadmin(roleIds);
+  const heads = await seedExpenseHeads();
 
   logger.info(
     {
       roles: [...roleIds.keys()],
       permissions: ALL_PERMISSIONS.length,
       superadmin: created ? env.SEED_ADMIN_EMAIL : 'already present, left alone',
+      expenseHeads: heads === 0 ? 'already present, left alone' : heads,
     },
     'production seed complete',
   );

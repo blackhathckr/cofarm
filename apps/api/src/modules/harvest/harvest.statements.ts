@@ -148,6 +148,7 @@ function toStatementDto(row: repo.StatementDetailRow, partnerName: string): Part
     harvestedOn: row.harvestedOn,
     grossRevenuePaise: toPaiseString(row.grossRevenuePaise),
     costsByHead: storedCostTotals(row.costsByHead),
+    costLines: row.costLines,
     totalCostPaise: toPaiseString(row.totalCostPaise),
     netProceedsPaise: toPaiseString(row.netProceedsPaise),
     kiaanShareBps: row.kiaanShareBps,

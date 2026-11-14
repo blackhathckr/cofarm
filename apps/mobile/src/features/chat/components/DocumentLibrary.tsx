@@ -34,7 +34,7 @@ export function DocumentLibrary({ projectId }: DocumentLibraryProps) {
         <View className="flex-1 gap-1">
           <Text className="text-base font-bold text-foreground">Your documents</Text>
           <Text className="text-xs text-muted">
-            Agreement, monthly reports, statements and slips
+            Agreement, quarterly reports, statements and slips
           </Text>
         </View>
         <Text className="text-xs font-bold text-clay-700">{isOpen ? 'Hide' : 'Open'}</Text>

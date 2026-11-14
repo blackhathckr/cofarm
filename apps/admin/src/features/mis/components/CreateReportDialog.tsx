@@ -1,4 +1,4 @@
-import type { MisReport } from '@cofarm/contracts/mis';
+import { misPeriodOf, previousMisPeriod, type MisReport } from '@cofarm/contracts/mis';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCreateReport, type ReportDraft } from '../hooks/use-create-report.ts';
-import { MisNarrativeFields } from './MisNarrativeFields';
-import { MisPdfField } from './MisPdfField';
+import { MisFileField } from './MisFileField';
 import { MisPeriodFields } from './MisPeriodFields';
 
 type CreateReportDialogProps = {
@@ -25,17 +23,11 @@ type CreateReportDialogProps = {
   onCreated: (report: MisReport) => void;
 };
 
+/** Starts on the quarter just closed, which is the one usually being reported. */
 function emptyDraft(): ReportDraft {
   const now = new Date();
-  return {
-    month: now.getMonth() + 1,
-    year: now.getFullYear(),
-    title: '',
-    source: 'uploaded',
-    narrative: '',
-    outlook: '',
-    file: null,
-  };
+  const period = previousMisPeriod(misPeriodOf(now.getFullYear(), now.getMonth() + 1));
+  return { quarter: period.quarter, year: period.year, title: '', file: null };
 }
 
 export function CreateReportDialog({
@@ -59,8 +51,7 @@ export function CreateReportDialog({
         <DialogHeader>
           <DialogTitle>New MIS report</DialogTitle>
           <DialogDescription>
-            One report per month. A generated report draws its figures from the ledger; an uploaded
-            one carries a PDF you supply now.
+            One report per quarter. Partners open the workbook on their phone once it is published.
           </DialogDescription>
         </DialogHeader>
 
@@ -73,11 +64,11 @@ export function CreateReportDialog({
           }}
         >
           <MisPeriodFields
-            month={draft.month}
+            quarter={draft.quarter}
             year={draft.year}
             problem={periodProblem}
-            onMonthChange={(month) => {
-              setDraft({ ...draft, month });
+            onQuarterChange={(quarter) => {
+              setDraft({ ...draft, quarter });
             }}
             onYearChange={(year) => {
               setDraft({ ...draft, year });
@@ -97,45 +88,13 @@ export function CreateReportDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Source</Label>
-            <RadioGroup
-              value={draft.source}
-              className="flex gap-6"
-              onValueChange={(next) => {
-                setDraft({ ...draft, source: next === 'generated' ? 'generated' : 'uploaded' });
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem id="mis-source-uploaded" value="uploaded" />
-                <Label htmlFor="mis-source-uploaded">Uploaded PDF</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem id="mis-source-generated" value="generated" />
-                <Label htmlFor="mis-source-generated">Generated</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {draft.source === 'uploaded' ? (
-            <MisPdfField
-              file={draft.file}
-              problem={fileProblem}
-              disabled={isPending}
-              onChange={(file) => {
-                setDraft({ ...draft, file });
-              }}
-            />
-          ) : null}
-
-          <MisNarrativeFields
-            narrative={draft.narrative}
-            outlook={draft.outlook}
-            onNarrativeChange={(narrative) => {
-              setDraft({ ...draft, narrative });
-            }}
-            onOutlookChange={(outlook) => {
-              setDraft({ ...draft, outlook });
+          <MisFileField
+            file={draft.file}
+            problem={fileProblem}
+            disabled={isPending}
+            emptyHint="The quarter's MIS as an Excel file."
+            onChange={(file) => {
+              setDraft({ ...draft, file });
             }}
           />
 

@@ -1,3 +1,4 @@
+import type { ExpenseHead } from '@cofarm/contracts/expense-heads';
 import type { LedgerEntry } from '@cofarm/contracts/ledger';
 import { cn } from 'cn';
 import { COST_HEAD_LABELS } from '@cofarm/core/pnl';
@@ -14,20 +15,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { headPath } from '@/lib/expense-heads.ts';
 import { ReceiptLink } from './ReceiptLink';
 
 type ExpenseTableProps = {
   entries: readonly LedgerEntry[];
+  heads: readonly ExpenseHead[];
   onReverse: (entry: LedgerEntry) => void;
 };
 
-export function ExpenseTable({ entries, onReverse }: ExpenseTableProps) {
+export function ExpenseTable({ entries, heads, onReverse }: ExpenseTableProps) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Date</TableHead>
-          <TableHead>Cost head</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead>Head</TableHead>
           <TableHead className="text-right">Amount</TableHead>
           <TableHead>Note</TableHead>
           <TableHead>Receipt</TableHead>
@@ -38,9 +42,9 @@ export function ExpenseTable({ entries, onReverse }: ExpenseTableProps) {
       <TableBody>
         {entries.length === 0 ? (
           <EmptyState
-            colSpan={7}
+            colSpan={8}
             title="No expense entries match these filters"
-            detail="Widen the cycle, cost head or date range, or record the first cost."
+            detail="Widen the cycle, category, head or date range, or record the first cost."
           />
         ) : null}
         {entries.map((entry) => {
@@ -53,6 +57,9 @@ export function ExpenseTable({ entries, onReverse }: ExpenseTableProps) {
               <TableCell className="tabular">{entry.entryDate}</TableCell>
               <TableCell>
                 {entry.costHead === null ? '—' : COST_HEAD_LABELS[entry.costHead]}
+              </TableCell>
+              <TableCell>
+                {entry.expenseHeadId === null ? '—' : (headPath(heads, entry.expenseHeadId) ?? '—')}
               </TableCell>
               <TableCell className="text-right">
                 <MoneyText

@@ -8,6 +8,7 @@ import { UsersPage } from '@/features/admin-users/pages/UsersPage';
 import { RolesPage } from '@/features/admin-users/pages/RolesPage';
 import { SecurityPage } from '@/features/admin-users/pages/SecurityPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { ExpenseHeadsPage } from '@/features/expense-heads/pages/ExpenseHeadsPage';
 import { HarvestEntryPage } from '@/features/harvest/pages/HarvestEntryPage';
 import { HarvestPage } from '@/features/harvest/pages/HarvestPage';
 import { ContributionsPage } from '@/features/ledger/pages/ContributionsPage';
@@ -57,6 +58,7 @@ const dashboardRoute = route('/', () => <DashboardPage />);
 const projectsRoute = route('/projects', () => <ProjectsPage />);
 const partnersRoute = route('/partners', () => <PartnersPage />);
 const approvalsRoute = route('/approvals', () => <ApprovalsPage />);
+const expenseHeadsRoute = route('/expense-heads', () => <ExpenseHeadsPage />);
 export type InboxSearch = { thread?: string; project?: string };
 
 const inboxRoute = createRoute({
@@ -193,6 +195,7 @@ export const router = createRouter({
     partnerDetailRoute,
     approvalsRoute,
     inboxRoute,
+    expenseHeadsRoute,
     adminUsersRoute,
     adminRolesRoute,
     securityRoute,

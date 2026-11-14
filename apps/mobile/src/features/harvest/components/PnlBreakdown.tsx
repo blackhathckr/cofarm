@@ -6,6 +6,7 @@ import { KeyValueRow } from '@/components/ui/KeyValueRow';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { formatBasisPoints } from '../basis-points.ts';
+import { CostCategoryRow } from './CostCategoryRow';
 
 type PnlBreakdownProps = {
   statement: PartnerStatement;
@@ -26,10 +27,11 @@ export function PnlBreakdown({ statement }: PnlBreakdownProps) {
         />
 
         {COST_HEADS.map((head) => (
-          <KeyValueRow
+          <CostCategoryRow
             key={head}
             label={COST_HEAD_LABELS[head]}
-            value={<MoneyText paise={statement.costsByHead[head] ?? '0'} className={AMOUNT} />}
+            amountPaise={statement.costsByHead[head] ?? '0'}
+            lines={statement.costLines.filter((line) => line.costHead === head)}
           />
         ))}
 

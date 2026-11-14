@@ -1,3 +1,4 @@
+import { misPeriodLabel, misPeriodStart, nextMisPeriod } from '@cofarm/contracts/mis';
 import { newId } from '@cofarm/core/id';
 
 import { db } from '../client.ts';
@@ -14,33 +15,25 @@ export async function seedContent(
   plan: ProjectPlan,
 ): Promise<ContentResult> {
   for (const report of plan.mis) {
-    // A published report must have its PDF; the publish check refuses one
-    // without. A draft is left without a document on purpose, so the console
-    // shows the attach-then-publish path.
-    const documentId = report.published
-      ? await createDocument({
-          projectId: project.projectId,
-          type: 'mis_report',
-          kind: 'mis_report',
-          originalName: `mis-${project.code}-${report.year.toString()}-${report.month.toString().padStart(2, '0')}.pdf`,
-          title: `${project.code} MIS, ${report.title}`,
-          uploadedBy: context.adminUserId,
-          ownerUserId: null,
-        })
-      : null;
+    const documentId = await createDocument({
+      projectId: project.projectId,
+      type: 'mis_report',
+      kind: 'mis_report',
+      originalName: `mis-${project.code}-${report.year.toString()}-q${report.quarter.toString()}.xlsx`,
+      title: `${project.code} MIS, ${misPeriodLabel(report.quarter, report.year)}`,
+      uploadedBy: context.adminUserId,
+      ownerUserId: null,
+    });
 
     await db.insert(misReports).values({
       id: newId(),
       projectId: project.projectId,
-      month: report.month,
+      quarter: report.quarter,
       year: report.year,
       title: report.title,
-      narrative: report.narrative,
-      outlook: report.outlook,
-      source: 'uploaded',
       documentId,
       status: report.published ? 'published' : 'draft',
-      publishedAt: report.published ? endOfMonth(report.year, report.month) : null,
+      publishedAt: report.published ? afterQuarter(report.year, report.quarter) : null,
       createdBy: context.adminUserId,
     });
   }
@@ -96,6 +89,7 @@ export async function seedContent(
   return { mis: plan.mis.length, updates: plan.updates.length, activity: plan.activity.length };
 }
 
-function endOfMonth(year: number, month: number): Date {
-  return new Date(Date.UTC(year, month, 0, 11, 0, 0));
+function afterQuarter(year: number, quarter: number): Date {
+  const start = misPeriodStart(nextMisPeriod({ year, quarter }));
+  return new Date(Date.UTC(start.calendarYear, start.month - 1, 5, 11, 0, 0));
 }

@@ -12,14 +12,15 @@ import {
 
 type CostHeadSelectProps = {
   id: string;
+  label: string;
   value: CostHead | null;
   onChange: (costHead: CostHead) => void;
 };
 
-export function CostHeadSelect({ id, value, onChange }: CostHeadSelectProps) {
+export function CostHeadSelect({ id, label, value, onChange }: CostHeadSelectProps) {
   return (
     <div className="space-y-1">
-      <Label htmlFor={id}>Cost head</Label>
+      <Label htmlFor={id}>{label}</Label>
       <Select
         value={value ?? ''}
         onValueChange={(next) => {
@@ -28,7 +29,7 @@ export function CostHeadSelect({ id, value, onChange }: CostHeadSelectProps) {
         }}
       >
         <SelectTrigger id={id} className="w-full">
-          <SelectValue placeholder="Choose a cost head" />
+          <SelectValue placeholder="Choose a category" />
         </SelectTrigger>
         <SelectContent>
           {COST_HEADS.map((head) => (

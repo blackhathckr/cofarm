@@ -13,7 +13,7 @@ export function LatestReportCard({ report, onPress }: LatestReportCardProps) {
       <View className="gap-1 rounded-3xl bg-surface-secondary p-4">
         <Text className="text-xs font-bold tracking-wider text-muted uppercase">Latest report</Text>
         <Text className="text-sm text-muted">
-          Your first monthly report appears here once the Kiaan team publishes it.
+          Your first quarterly report appears here once the Kiaan team publishes it.
         </Text>
       </View>
     );

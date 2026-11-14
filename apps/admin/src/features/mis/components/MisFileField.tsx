@@ -3,21 +3,22 @@ import { useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { acceptAttribute, PDF_MIME } from '@/lib/upload-limits.ts';
+import { acceptAttribute, SPREADSHEET_MIMES } from '@/lib/upload-limits.ts';
 
-type MisPdfFieldProps = {
+type MisFileFieldProps = {
   file: File | null;
   problem: string | null;
   disabled: boolean;
+  emptyHint: string;
   onChange: (file: File | null) => void;
 };
 
-export function MisPdfField({ file, problem, disabled, onChange }: MisPdfFieldProps) {
+export function MisFileField({ file, problem, disabled, emptyHint, onChange }: MisFileFieldProps) {
   const picker = useRef<HTMLInputElement>(null);
 
   return (
     <div className="space-y-2">
-      <Label>Report PDF</Label>
+      <Label>MIS workbook (.xlsx)</Label>
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
@@ -28,10 +29,10 @@ export function MisPdfField({ file, problem, disabled, onChange }: MisPdfFieldPr
           }}
         >
           <FileUp />
-          {file === null ? 'Choose PDF' : 'Replace PDF'}
+          {file === null ? 'Choose file' : 'Replace file'}
         </Button>
         <span className="min-w-0 truncate text-sm text-muted-foreground">
-          {file === null ? 'An uploaded report needs its PDF now.' : file.name}
+          {file === null ? emptyHint : file.name}
         </span>
       </div>
 
@@ -39,7 +40,7 @@ export function MisPdfField({ file, problem, disabled, onChange }: MisPdfFieldPr
         ref={picker}
         type="file"
         hidden
-        accept={acceptAttribute([PDF_MIME])}
+        accept={acceptAttribute(SPREADSHEET_MIMES)}
         onChange={(event) => {
           const chosen = event.target.files?.[0] ?? null;
           event.target.value = '';

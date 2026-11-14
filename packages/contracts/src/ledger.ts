@@ -34,6 +34,7 @@ export const ledgerEntrySchema = z.object({
   membershipId: uuidSchema.nullable(),
   type: ledgerTypeSchema,
   costHead: costHeadSchema.nullable(),
+  expenseHeadId: uuidSchema.nullable(),
   amountPaise: paiseSchema,
   entryDate: dateSchema,
   note: z.string().nullable(),
@@ -45,6 +46,14 @@ export const ledgerEntrySchema = z.object({
 
 /** Heads with no spend are omitted rather than sent as zero. */
 export const costTotalsSchema = z.partialRecord(costHeadSchema, paiseSchema);
+
+/** Spend under one expense head; `head` is null for entries recorded before heads existed. */
+export const costLineSchema = z.object({
+  costHead: costHeadSchema,
+  head: z.string().nullable(),
+  subHead: z.string().nullable(),
+  amountPaise: paiseSchema,
+});
 
 export const membershipTotalSchema = z.object({
   membershipId: uuidSchema,
@@ -74,7 +83,7 @@ export const ledgerSummarySchema = z.object({
 
 export const recordExpenseBodySchema = z.object({
   cycleId: uuidSchema.optional(),
-  costHead: costHeadSchema,
+  expenseHeadId: uuidSchema,
   amountPaise: positivePaiseSchema,
   entryDate: dateSchema,
   note: z.string().min(1).max(500).optional(),
@@ -108,6 +117,7 @@ export const recordRevenueBodySchema = z.object({
 export const listExpensesQuerySchema = paginationQuerySchema.extend({
   cycleId: uuidSchema.optional(),
   costHead: costHeadSchema.optional(),
+  expenseHeadId: uuidSchema.optional(),
   from: dateSchema.optional(),
   to: dateSchema.optional(),
 });
@@ -129,6 +139,7 @@ export const ledgerEntryParamsSchema = z.object({
 export type LedgerType = z.infer<typeof ledgerTypeSchema>;
 export type LedgerEntry = z.infer<typeof ledgerEntrySchema>;
 export type CostTotals = z.infer<typeof costTotalsSchema>;
+export type CostLine = z.infer<typeof costLineSchema>;
 export type MembershipTotal = z.infer<typeof membershipTotalSchema>;
 export type ExpensePage = z.infer<typeof expensePageSchema>;
 export type ContributionPage = z.infer<typeof contributionPageSchema>;

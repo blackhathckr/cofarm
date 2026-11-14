@@ -22,6 +22,8 @@ const GLYPHS = {
   close: { set: 'feather', glyph: 'x' },
   chevronLeft: { set: 'feather', glyph: 'chevron-left' },
   chevronRight: { set: 'feather', glyph: 'chevron-right' },
+  chevronDown: { set: 'feather', glyph: 'chevron-down' },
+  chevronUp: { set: 'feather', glyph: 'chevron-up' },
   calendar: { set: 'feather', glyph: 'calendar' },
 } as const satisfies Record<string, Glyph>;
 

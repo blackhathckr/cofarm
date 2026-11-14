@@ -1,5 +1,4 @@
 import type { Cycle } from '@cofarm/contracts/projects';
-import type { CostHead } from '@cofarm/core/pnl';
 import { useState, type SyntheticEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  EMPTY_HEAD_CHOICE,
+  ExpenseHeadPicker,
+  type HeadChoice,
+} from '@/components/ExpenseHeadPicker';
 import { indiaToday } from '@/lib/india-date.ts';
 import { parseRupeeAmount } from '@/lib/rupee-input.ts';
 import { ANY_VALUE } from '../expense-filters.ts';
 import { useRecordExpense } from '../hooks/use-expenses.ts';
-import { CostHeadSelect } from './CostHeadSelect';
 import { CycleSelect } from './CycleSelect';
 import { DocumentPicker } from './DocumentPicker';
 import { EntryDateField } from './EntryDateField';
@@ -31,7 +34,7 @@ type RecordExpenseDialogProps = {
 
 type ExpenseDraft = {
   cycleId: string;
-  costHead: CostHead | null;
+  head: HeadChoice;
   rupees: string;
   entryDate: string;
   note: string;
@@ -40,7 +43,7 @@ type ExpenseDraft = {
 
 const EMPTY_DRAFT: ExpenseDraft = {
   cycleId: ANY_VALUE,
-  costHead: null,
+  head: EMPTY_HEAD_CHOICE,
   rupees: '',
   entryDate: indiaToday(),
   note: '',
@@ -61,8 +64,9 @@ export function RecordExpenseDialog({ projectId, cycles }: RecordExpenseDialogPr
 
   function submit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (draft.costHead === null) {
-      setInvalid('Choose a cost head');
+    const expenseHeadId = draft.head.subHeadId ?? draft.head.headId;
+    if (expenseHeadId === null) {
+      setInvalid('Choose a category and head');
       return;
     }
     if (amount.error !== null) {
@@ -73,7 +77,7 @@ export function RecordExpenseDialog({ projectId, cycles }: RecordExpenseDialogPr
 
     record.mutate(
       {
-        costHead: draft.costHead,
+        expenseHeadId,
         amountPaise: amount.paise,
         entryDate: draft.entryDate,
         ...(draft.cycleId === ANY_VALUE ? {} : { cycleId: draft.cycleId }),
@@ -112,11 +116,11 @@ export function RecordExpenseDialog({ projectId, cycles }: RecordExpenseDialogPr
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={submit}>
-          <CostHeadSelect
-            id="expense-head"
-            value={draft.costHead}
-            onChange={(costHead) => {
-              patch({ costHead });
+          <ExpenseHeadPicker
+            idPrefix="expense"
+            value={draft.head}
+            onChange={(head) => {
+              patch({ head });
             }}
           />
 

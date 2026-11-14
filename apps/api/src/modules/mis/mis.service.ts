@@ -1,32 +1,21 @@
+import { XLSX_MIME } from '@cofarm/contracts/documents';
 import { ERROR_CODES } from '@cofarm/contracts/errors';
 import {
   misCursor,
   misPeriodLabel,
   type CreateMisBody,
   type ListMisQuery,
-  type MisComposePayload,
-  type MisCostHead,
-  type MisFigureSource,
   type MisLatest,
-  type MisMilestoneState,
   type MisPage,
-  type MisPhotograph,
   type MisReport,
   type MisSummary,
   type UpdateMisBody,
 } from '@cofarm/contracts/mis';
-import { toPaiseString } from '@cofarm/contracts/primitives';
-import type { Cycle, Project } from '@cofarm/contracts/projects';
 import type { EntityReceipts, EntityType } from '@cofarm/contracts/tracking';
-import { activeStage, MILESTONE_LABELS } from '@cofarm/core/cycle';
 import { newId } from '@cofarm/core/id';
-import { formatInr } from '@cofarm/core/money';
 
-import { badRequest, conflict, notFound, unprocessable, type AppError } from '../../lib/errors.ts';
-import { indiaToday } from '../../lib/india-date.ts';
+import { badRequest, conflict, notFound, type AppError } from '../../lib/errors.ts';
 import { pickDefined } from '../../lib/patch.ts';
-import * as ledger from '../ledger/ledger.service.ts';
-import * as updates from '../updates/updates.service.ts';
 import { ADMIN_SCOPE, assertInScope, type ProjectScope } from '../../lib/project-scope.ts';
 import * as audit from '../audit/audit.service.ts';
 import * as documents from '../documents/documents.service.ts';
@@ -34,15 +23,10 @@ import * as notifications from '../notifications/notifications.service.ts';
 import * as projects from '../projects/projects.service.ts';
 import * as tracking from '../tracking/tracking.service.ts';
 
-import { misReportPdfFilename, renderMisReportPdf, type ReportPhoto } from './mis.report-pdf.tsx';
 import * as repo from './mis.repo.ts';
 
 const MIS_ENTITY: EntityType = 'mis_report';
 const ENTITY_TABLE = 'mis_reports';
-
-/** A representative handful, laid out as a two-by-three grid on one page. A
- * month of daily updates can carry dozens, which no reader wants. */
-const REPORT_PHOTO_LIMIT = 6;
 
 export type MisViewer = {
   userId: string;
@@ -54,24 +38,6 @@ export type MisViewer = {
 type ReadState = {
   isRead: boolean;
   isNew: boolean;
-};
-
-type MisPeriod = {
-  year: number;
-  month: number;
-};
-
-type CostTotal = {
-  head: MisCostHead;
-  amountPaise: bigint;
-};
-
-type ComposeFigures = {
-  costsByHead: readonly CostTotal[];
-  totalCostPaise: bigint;
-  updateCount: number;
-  photographs: readonly MisPhotograph[];
-  unavailable: readonly MisFigureSource[];
 };
 
 export async function listReports(
@@ -95,7 +61,7 @@ export async function listReports(
 
   return {
     items: page.map((row) => toSummary(row, readState(viewer, row, read.has(row.id)))),
-    nextCursor: hasMore && last !== undefined ? misCursor(last.year, last.month) : null,
+    nextCursor: hasMore && last !== undefined ? misCursor(last.year, last.quarter) : null,
   };
 }
 
@@ -142,31 +108,22 @@ export async function createReport(
   actorUserId: string,
 ): Promise<MisReport> {
   await projects.getProject(ADMIN_SCOPE, projectId);
+  await assertWorkbook(input.documentId, projectId);
 
-  if (input.source === 'uploaded' && input.documentId === undefined) {
-    throw badRequest('An uploaded report needs the documentId of its PDF');
-  }
-  if (input.documentId !== undefined) {
-    await documents.assertDocumentInProject(input.documentId, projectId);
-  }
-
-  const existing = await repo.findByPeriod(ADMIN_SCOPE, projectId, input.year, input.month);
-  if (existing !== null) throw periodConflict(input.month, input.year);
+  const existing = await repo.findByPeriod(ADMIN_SCOPE, projectId, input.year, input.quarter);
+  if (existing !== null) throw periodConflict(input.quarter, input.year);
 
   const created = await repo.insertReport({
     id: newId(),
     projectId,
-    month: input.month,
+    quarter: input.quarter,
     year: input.year,
     title: input.title,
-    narrative: input.narrative ?? null,
-    outlook: input.outlook ?? null,
-    source: input.source,
-    documentId: input.documentId ?? null,
+    documentId: input.documentId,
     status: 'draft',
     createdBy: actorUserId,
   });
-  if (created === null) throw periodConflict(input.month, input.year);
+  if (created === null) throw periodConflict(input.quarter, input.year);
 
   await audit.record({
     action: 'mis.created',
@@ -190,27 +147,21 @@ export async function updateReport(
     throw conflict(
       ERROR_CODES.alreadyPublished,
       'A published report can no longer be edited',
-      'Publish a corrected report for a later period instead.',
+      'Unpublish it first, then correct it.',
     );
   }
 
-  if (input.documentId !== undefined && input.documentId !== null) {
-    await documents.assertDocumentInProject(input.documentId, projectId);
-  }
-  if (before.source === 'uploaded' && input.documentId === null) {
-    throw badRequest('An uploaded report cannot drop its PDF');
-  }
+  if (input.documentId !== undefined) await assertWorkbook(input.documentId, projectId);
 
   const updated = await repo.updateReport(
     reportId,
-    pickDefined({
-      title: input.title,
-      narrative: input.narrative,
-      outlook: input.outlook,
-      documentId: input.documentId,
-    }),
+    pickDefined({ title: input.title, documentId: input.documentId }),
   );
   if (updated === null) throw notFound('MIS report');
+
+  if (input.documentId !== undefined && input.documentId !== before.documentId) {
+    await documents.discardMany([before.documentId]);
+  }
 
   await audit.record({
     action: 'mis.updated',
@@ -231,14 +182,9 @@ export async function publishReport(projectId: string, reportId: string): Promis
     throw conflict(ERROR_CODES.alreadyPublished, 'This report is already published');
   }
 
-  // A generated report renders its own PDF here; a manual upload is the
-  // fallback rather than the only path, so an uploaded one still needs its own.
-  const documentId = before.documentId ?? (await generateReportDocumentId(projectId, before));
-
   const published = await repo.updateReport(reportId, {
     status: 'published',
     publishedAt: new Date(),
-    documentId,
   });
   if (published === null) throw notFound('MIS report');
 
@@ -251,7 +197,7 @@ export async function publishReport(projectId: string, reportId: string): Promis
     after: published,
   });
 
-  const label = misPeriodLabel(published.month, published.year);
+  const label = misPeriodLabel(published.quarter, published.year);
   await notifications.notifyProjectPartners({
     projectId,
     type: 'mis_published',
@@ -261,7 +207,7 @@ export async function publishReport(projectId: string, reportId: string): Promis
     entityId: published.id,
     payload: {
       reportId: published.id,
-      month: published.month.toString(),
+      quarter: published.quarter.toString(),
       year: published.year.toString(),
     },
   });
@@ -273,7 +219,7 @@ export async function publishReport(projectId: string, reportId: string): Promis
  * Pulls a published report back to a draft so a wrong figure can be corrected.
  * The period is unique per project, so without this a published mistake could
  * never be fixed: it cannot be edited, deleted, or superseded by a second
- * report for the same month.
+ * report for the same quarter.
  */
 export async function unpublishReport(projectId: string, reportId: string): Promise<MisReport> {
   const before = await repo.findReport(ADMIN_SCOPE, projectId, reportId);
@@ -282,15 +228,7 @@ export async function unpublishReport(projectId: string, reportId: string): Prom
     throw conflict(ERROR_CODES.notPublished, 'This report is not published');
   }
 
-  // A generated PDF holds the figures as they were. Dropping it makes the next
-  // publish render the corrected ones instead of silently reusing the old file.
-  const staleDocumentId = before.source === 'generated' ? before.documentId : null;
-
-  const draft = await repo.updateReport(reportId, {
-    status: 'draft',
-    publishedAt: null,
-    ...(staleDocumentId === null ? {} : { documentId: null }),
-  });
+  const draft = await repo.updateReport(reportId, { status: 'draft', publishedAt: null });
   if (draft === null) throw notFound('MIS report');
 
   await tracking.clearReceipts({
@@ -298,10 +236,6 @@ export async function unpublishReport(projectId: string, reportId: string): Prom
     entityType: MIS_ENTITY,
     entityId: reportId,
   });
-
-  if (staleDocumentId !== null) {
-    await documents.discardGenerated(staleDocumentId);
-  }
 
   await audit.record({
     action: 'mis.unpublished',
@@ -325,8 +259,7 @@ export async function deleteReport(projectId: string, reportId: string): Promise
   // goes too; otherwise a receipt counts a document nobody can open.
   await tracking.clearReceipts({ projectId, entityType: MIS_ENTITY, entityId: reportId });
   await notifications.discardForEntity({ entityType: MIS_ENTITY, entityId: reportId });
-  // Generated or uploaded, the PDF existed only for this report.
-  if (row.documentId !== null) await documents.discardMany([row.documentId]);
+  await documents.discardMany([row.documentId]);
 
   await audit.record({
     action: 'mis.deleted',
@@ -352,223 +285,12 @@ export async function receiptsForReport(
   });
 }
 
-type StoreComposedInput = {
-  projectId: string;
-  row: repo.MisReportRow;
-  narrative?: string;
-  outlook?: string;
-};
-
-async function storeComposedText(input: StoreComposedInput): Promise<void> {
-  const stored = await repo.updateReport(
-    input.row.id,
-    pickDefined({ narrative: input.narrative, outlook: input.outlook }),
-  );
-  if (stored === null) return;
-
-  await audit.record({
-    action: 'mis.updated',
-    entityTable: ENTITY_TABLE,
-    entityId: input.row.id,
-    projectId: input.projectId,
-    before: input.row,
-    after: stored,
-  });
-}
-
-export async function composeReport(
-  projectId: string,
-  reportId: string,
-): Promise<MisComposePayload> {
-  const row = await repo.findReport(ADMIN_SCOPE, projectId, reportId);
-  if (row === null) throw notFound('MIS report');
-
-  const project = await projects.getProject(ADMIN_SCOPE, projectId);
-  const figures = await composeFigures(
-    projectId,
-    { year: row.year, month: row.month },
-    project.currentCycle?.id ?? null,
-  );
-  const milestone = toMilestoneState(project.currentCycle);
-  const label = misPeriodLabel(row.month, row.year);
-
-  const narrative = row.narrative ?? composeNarrative(project, label, figures, milestone);
-  const outlook = row.outlook ?? composeOutlook(project);
-
-  // Text built on figures no module has supplied yet would read as a month of
-  // zero spend, so nothing is written back until they are wired.
-  const canStore = missingFigures(figures).length === 0;
-  const narrativeStored = canStore && row.narrative === null;
-  const outlookStored = canStore && row.outlook === null;
-
-  if (narrativeStored || outlookStored) {
-    await storeComposedText({
-      projectId,
-      row,
-      ...(narrativeStored ? { narrative } : {}),
-      ...(outlookStored ? { outlook } : {}),
-    });
+async function assertWorkbook(documentId: string, projectId: string): Promise<void> {
+  const document = await documents.assertDocumentInProject(documentId, projectId);
+  if (document.mime !== XLSX_MIME) {
+    throw badRequest('An MIS report is uploaded as an Excel workbook (.xlsx)');
   }
-
-  return {
-    reportId: row.id,
-    projectId,
-    month: row.month,
-    year: row.year,
-    label,
-    narrative,
-    outlook,
-    narrativeStored,
-    outlookStored,
-    costs: composedCosts(project.currentCycle, figures),
-    updateCount: figures.updateCount,
-    milestone,
-    photographs: [...figures.photographs],
-    unavailableFigures: [...figures.unavailable],
-  };
 }
-
-function composedCosts(
-  cycle: Project['currentCycle'],
-  figures: ComposeFigures,
-): MisComposePayload['costs'] {
-  return {
-    cycleId: cycle?.id ?? null,
-    cycleNo: cycle?.cycleNo ?? null,
-    totalPaise: toPaiseString(figures.totalCostPaise),
-    byHead: figures.costsByHead.map((total) => ({
-      head: total.head,
-      amountPaise: toPaiseString(total.amountPaise),
-    })),
-  };
-}
-
-async function generateReportDocumentId(
-  projectId: string,
-  row: repo.MisReportRow,
-): Promise<string> {
-  if (row.source !== 'generated') {
-    throw unprocessable(
-      ERROR_CODES.misDocumentMissing,
-      'Attach the report PDF before publishing',
-      'A partner opens the MIS as a document, so a report without one is not publishable.',
-    );
-  }
-
-  const project = await projects.getProject(ADMIN_SCOPE, projectId);
-  const period = { year: row.year, month: row.month };
-  const figures = await composeFigures(projectId, period, project.currentCycle?.id ?? null);
-
-  const missing = missingFigures(figures);
-  if (missing.length > 0) {
-    throw unprocessable(
-      ERROR_CODES.misDocumentMissing,
-      'The figures this report is generated from are not available, so no PDF can be rendered',
-      `Unavailable: ${missing.join(', ')}. Attach a PDF and publish the report as an upload instead.`,
-    );
-  }
-
-  const milestone = toMilestoneState(project.currentCycle);
-  const label = misPeriodLabel(row.month, row.year);
-
-  const pdf = await renderMisReportPdf({
-    projectCode: project.code,
-    projectName: project.name,
-    label,
-    title: row.title,
-    narrative: row.narrative ?? composeNarrative(project, label, figures, milestone),
-    outlook: row.outlook ?? composeOutlook(project),
-    costsByHead: costsByHeadRecord(figures.costsByHead),
-    totalCostPaise: figures.totalCostPaise,
-    updateCount: figures.updateCount,
-    milestone,
-    photos: await reportPhotos(figures.photographs),
-    generatedOn: indiaToday(),
-  });
-
-  const document = await documents.storeGeneratedDocument({
-    projectId,
-    type: 'mis_report',
-    originalName: misReportPdfFilename(project.code, row.year, row.month),
-    mime: 'application/pdf',
-    body: pdf,
-  });
-
-  return document.id;
-}
-
-function costsByHeadRecord(totals: readonly CostTotal[]): Partial<Record<MisCostHead, bigint>> {
-  const byHead: Partial<Record<MisCostHead, bigint>> = {};
-  for (const total of totals) byHead[total.head] = total.amountPaise;
-  return byHead;
-}
-
-/**
- * Cost totals come from the ledger and the period's update count from the
- * updates module, each through its service. A project with no open cycle has
- * no cycle costs to report, so that figure is marked unavailable rather than
- * reported as zero spend.
- */
-async function composeFigures(
-  projectId: string,
-  period: MisPeriod,
-  cycleId: string | null,
-): Promise<ComposeFigures> {
-  const unavailable: MisFigureSource[] = [];
-
-  const [costs, updateCount, photographs] = await Promise.all([
-    cycleId === null ? Promise.resolve(null) : ledger.costTotalsByHead({ projectId, cycleId }),
-    updates.countInPeriod({ projectId, year: period.year, month: period.month }),
-    updates.photosInPeriod({
-      projectId,
-      year: period.year,
-      month: period.month,
-      limit: REPORT_PHOTO_LIMIT,
-    }),
-  ]);
-
-  if (costs === null) unavailable.push('cost_totals');
-  if (photographs.length === 0) unavailable.push('photographs');
-
-  return {
-    costsByHead: (costs?.totals ?? []).map((total) => ({
-      head: total.head,
-      amountPaise: total.amountPaise,
-    })),
-    totalCostPaise: costs?.totalCostPaise ?? 0n,
-    updateCount,
-    photographs,
-    unavailable,
-  };
-}
-
-/**
- * A month with no photographs is normal and publishes; a figure no module has
- * supplied is not, because the report would read as a month of zero spend.
- */
-function missingFigures(figures: ComposeFigures): MisFigureSource[] {
-  return figures.unavailable.filter((source) => source !== 'photographs');
-}
-
-/** A photograph whose object has gone from storage is skipped: a report must
- * still be publishable without it. */
-async function reportPhotos(photographs: readonly MisPhotograph[]): Promise<ReportPhoto[]> {
-  const stored = await Promise.all(
-    photographs.map(async (photograph) => {
-      const object = await documents.readDocumentObject(photograph.documentId);
-      if (object === null) return null;
-      const format = PDF_IMAGE_FORMATS[object.mime];
-      if (format === undefined) return null;
-      return { caption: photograph.caption, body: object.body, format };
-    }),
-  );
-  return stored.flatMap((photo) => (photo === null ? [] : [photo]));
-}
-
-const PDF_IMAGE_FORMATS: Readonly<Record<string, 'png' | 'jpg' | undefined>> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-};
 
 /** One query for the whole page rather than a receipt lookup per report. */
 async function readIdsFor(
@@ -622,87 +344,29 @@ function readState(viewer: MisViewer, row: repo.MisReportRow, isRead: boolean): 
 function parsePeriodCursor(cursor: string | undefined): repo.PeriodCursor | undefined {
   if (cursor === undefined) return undefined;
 
-  const [year, month] = cursor.split('-');
-  if (year === undefined || month === undefined) return undefined;
+  const [year, quarter] = cursor.split('-');
+  if (year === undefined || quarter === undefined) return undefined;
 
-  const parsed = { year: Number(year), month: Number(month) };
-  if (!Number.isInteger(parsed.year) || !Number.isInteger(parsed.month)) return undefined;
+  const parsed = { year: Number(year), quarter: Number(quarter) };
+  if (!Number.isInteger(parsed.year) || !Number.isInteger(parsed.quarter)) return undefined;
   return parsed;
 }
 
-function periodConflict(month: number, year: number): AppError {
+function periodConflict(quarter: number, year: number): AppError {
   return conflict(
     ERROR_CODES.misPeriodExists,
-    `${misPeriodLabel(month, year)} already has a report for this project`,
+    `${misPeriodLabel(quarter, year)} already has a report for this project`,
   );
-}
-
-function toMilestoneState(cycle: Cycle | null): MisMilestoneState | null {
-  if (cycle === null) return null;
-
-  const stages = cycle.milestones.map((milestone) => ({
-    stage: milestone.stage,
-    status: milestone.status,
-  }));
-  const stage = activeStage(stages);
-
-  return {
-    cycleId: cycle.id,
-    cycleNo: cycle.cycleNo,
-    progressBps: cycle.progressBps,
-    activeStage: stage,
-    activeStageLabel: stage === null ? null : MILESTONE_LABELS[stage],
-    stages,
-  };
-}
-
-function composeNarrative(
-  project: Project,
-  label: string,
-  figures: ComposeFigures,
-  milestone: MisMilestoneState | null,
-): string {
-  const progress =
-    milestone === null ? 'no cycle open' : `${Math.round(milestone.progressBps / 100)}% complete`;
-  const stage = milestone?.activeStageLabel ?? 'no stage in progress';
-  const spend = formatInr(figures.totalCostPaise);
-
-  return [
-    `${project.name} (${project.code}) — ${label}.`,
-    `${figures.updateCount} field updates were posted in the period.`,
-    `Cycle spend stands at ${spend} across ${figures.costsByHead.length} cost heads.`,
-    `The cycle is ${progress}, with ${stage}.`,
-  ].join(' ');
-}
-
-function composeOutlook(project: Project): string {
-  const cycle = project.currentCycle;
-  if (cycle === null) {
-    return [
-      `No cycle is open at ${project.name}.`,
-      "The next cycle's plan follows once land preparation is scheduled.",
-    ].join(' ');
-  }
-
-  const window =
-    cycle.expectedHarvestFrom === null
-      ? 'a window still being firmed up'
-      : `${cycle.expectedHarvestFrom} to ${cycle.expectedHarvestTo ?? cycle.expectedHarvestFrom}`;
-
-  return `Cycle ${cycle.cycleNo} continues at ${project.name}, with harvest expected in ${window}.`;
 }
 
 function toReport(row: repo.MisReportRow, state: ReadState): MisReport {
   return {
     id: row.id,
     projectId: row.projectId,
-    month: row.month,
+    quarter: row.quarter,
     year: row.year,
-    label: misPeriodLabel(row.month, row.year),
+    label: misPeriodLabel(row.quarter, row.year),
     title: row.title,
-    narrative: row.narrative,
-    outlook: row.outlook,
-    source: row.source,
     documentId: row.documentId,
     status: row.status,
     publishedAt: row.publishedAt === null ? null : row.publishedAt.toISOString(),
@@ -715,14 +379,11 @@ function toReport(row: repo.MisReportRow, state: ReadState): MisReport {
 function toSummary(row: repo.MisReportRow, state: ReadState): MisSummary {
   return {
     id: row.id,
-    month: row.month,
+    quarter: row.quarter,
     year: row.year,
-    label: misPeriodLabel(row.month, row.year),
+    label: misPeriodLabel(row.quarter, row.year),
     title: row.title,
     status: row.status,
-    // On the summary so the archive can label a row without opening the
-    // report, which is what records the read receipt.
-    source: row.source,
     documentId: row.documentId,
     publishedAt: row.publishedAt === null ? null : row.publishedAt.toISOString(),
     isRead: state.isRead,

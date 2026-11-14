@@ -9,7 +9,7 @@ export type MisReportRow = typeof misReports.$inferSelect;
 
 export type PeriodCursor = {
   year: number;
-  month: number;
+  quarter: number;
 };
 
 export type ListFilters = {
@@ -39,7 +39,7 @@ export async function listReports(
   if (filters.cursor !== undefined) {
     const older = or(
       lt(misReports.year, filters.cursor.year),
-      and(eq(misReports.year, filters.cursor.year), lt(misReports.month, filters.cursor.month)),
+      and(eq(misReports.year, filters.cursor.year), lt(misReports.quarter, filters.cursor.quarter)),
     );
     if (older !== undefined) conditions.push(older);
   }
@@ -48,7 +48,7 @@ export async function listReports(
     .select()
     .from(misReports)
     .where(and(...conditions))
-    .orderBy(desc(misReports.year), desc(misReports.month))
+    .orderBy(desc(misReports.year), desc(misReports.quarter))
     .limit(filters.limit);
 }
 
@@ -75,7 +75,7 @@ export async function findByPeriod(
   scope: ProjectScope,
   projectId: string,
   year: number,
-  month: number,
+  quarter: number,
 ): Promise<MisReportRow | null> {
   const [row] = await db
     .select()
@@ -84,7 +84,7 @@ export async function findByPeriod(
       and(
         eq(misReports.projectId, projectId),
         eq(misReports.year, year),
-        eq(misReports.month, month),
+        eq(misReports.quarter, quarter),
         withinScope(scope, misReports.projectId),
       ),
     )
@@ -102,12 +102,9 @@ export async function latestPublishedPerProject(scope: ProjectScope): Promise<La
     .selectDistinctOn([misReports.projectId], {
       id: misReports.id,
       projectId: misReports.projectId,
-      month: misReports.month,
+      quarter: misReports.quarter,
       year: misReports.year,
       title: misReports.title,
-      narrative: misReports.narrative,
-      outlook: misReports.outlook,
-      source: misReports.source,
       documentId: misReports.documentId,
       status: misReports.status,
       publishedAt: misReports.publishedAt,
@@ -120,7 +117,7 @@ export async function latestPublishedPerProject(scope: ProjectScope): Promise<La
     .from(misReports)
     .innerJoin(projects, eq(projects.id, misReports.projectId))
     .where(and(eq(misReports.status, 'published'), withinScope(scope, misReports.projectId)))
-    .orderBy(misReports.projectId, desc(misReports.year), desc(misReports.month));
+    .orderBy(misReports.projectId, desc(misReports.year), desc(misReports.quarter));
 }
 
 /** Null when the period's unique index rejects the row, which is a conflict. */

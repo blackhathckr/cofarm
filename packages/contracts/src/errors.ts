@@ -34,7 +34,7 @@ export const ERROR_CODES = {
   harvestExists: 'harvest_exists',
   payoutsAlreadyRecorded: 'payouts_already_recorded',
   misPeriodExists: 'mis_period_exists',
-  misDocumentMissing: 'mis_document_missing',
+  expenseHeadExists: 'expense_head_exists',
   alreadyPublished: 'already_published',
   notPublished: 'not_published',
   ledgerImmutable: 'ledger_immutable',

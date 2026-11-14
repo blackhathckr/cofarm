@@ -5,6 +5,7 @@ import { ErrorNote } from '@/components/ErrorNote';
 import { LoadMore } from '@/components/LoadMore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useExpenseHeads } from '@/lib/expense-heads.ts';
 import { useProjectCycles } from '@/lib/project-cycles.ts';
 import { CostHeadSummary } from '../components/CostHeadSummary';
 import { ExpenseFilterBar } from '../components/ExpenseFilterBar';
@@ -31,6 +32,7 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
 
   const query = useMemo(() => toExpenseFilters(filters), [filters]);
   const cycles = useProjectCycles(projectId);
+  const heads = useExpenseHeads().data ?? [];
   const expenses = useExpenses(projectId, query);
   const summary = useLedgerSummary(projectId, query.cycleId);
 
@@ -43,7 +45,7 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
           <p className="text-sm text-muted-foreground">
-            Every cost booked against this project, by cost head.
+            Every cost booked against this project, by category and head.
           </p>
         </div>
         <div className="flex gap-2">
@@ -69,7 +71,12 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
         </AlertDescription>
       </Alert>
 
-      <ExpenseFilterBar cycles={cycles.data ?? []} value={filters} onChange={setFilters} />
+      <ExpenseFilterBar
+        cycles={cycles.data ?? []}
+        heads={heads}
+        value={filters}
+        onChange={setFilters}
+      />
 
       <ErrorNote error={expenses.error} />
 
@@ -81,7 +88,7 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
         </div>
       ) : (
         <div className="rounded-lg border bg-card">
-          <ExpenseTable entries={entries} onReverse={setReversing} />
+          <ExpenseTable entries={entries} heads={heads} onReverse={setReversing} />
           <LoadMore paging={expenses} label="Load older entries" />
         </div>
       )}
@@ -90,6 +97,7 @@ export function ExpensesPage({ projectId }: ExpensesPageProps) {
         <ReverseExpenseDialog
           projectId={projectId}
           entry={reversing}
+          heads={heads}
           onClose={() => {
             setReversing(null);
           }}

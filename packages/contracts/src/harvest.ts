@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { costTotalsSchema, positivePaiseSchema } from './ledger.ts';
+import { costLineSchema, costTotalsSchema, positivePaiseSchema } from './ledger.ts';
 import {
   basisPointsSchema,
   dateSchema,
@@ -94,6 +94,7 @@ export const partnerStatementSchema = z.object({
   harvestedOn: dateSchema,
   grossRevenuePaise: paiseSchema,
   costsByHead: costTotalsSchema,
+  costLines: z.array(costLineSchema),
   totalCostPaise: paiseSchema,
   netProceedsPaise: paiseSchema,
   kiaanShareBps: basisPointsSchema,

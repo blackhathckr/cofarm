@@ -1,5 +1,6 @@
 import {
   and,
+  asc,
   desc,
   eq,
   gte,
@@ -10,6 +11,7 @@ import {
   lte,
   notInArray,
   or,
+  sql,
   sum,
   type SQL,
 } from 'drizzle-orm';
@@ -17,8 +19,8 @@ import { alias } from 'drizzle-orm/pg-core';
 
 import { db } from '../../db/client.ts';
 import { withinScope } from '../../db/scoped.ts';
-import { cycles, ledgerEntries, memberships, projects } from '../../db/schema.ts';
-import type { ProjectScope } from '../../lib/project-scope.ts';
+import { cycles, expenseHeads, ledgerEntries, memberships, projects } from '../../db/schema.ts';
+import { ADMIN_SCOPE, type ProjectScope } from '../../lib/project-scope.ts';
 
 export type LedgerEntryRow = typeof ledgerEntries.$inferSelect;
 export type LedgerType = LedgerEntryRow['type'];
@@ -34,6 +36,8 @@ export type EntryFilters = {
   membershipId: string | undefined;
   from: string | undefined;
   to: string | undefined;
+  /** Matches the head itself and every sub-head under it. */
+  expenseHeadId?: string;
 };
 
 export type EntryPageFilters = EntryFilters & {
@@ -42,10 +46,17 @@ export type EntryPageFilters = EntryFilters & {
 };
 
 export type HeadTotalRow = { costHead: LedgerEntryRow['costHead']; totalPaise: string | null };
+export type ExpenseHeadTotalRow = {
+  costHead: LedgerEntryRow['costHead'];
+  headName: string | null;
+  parentName: string | null;
+  totalPaise: string | null;
+};
 export type MembershipTotalRow = { membershipId: string | null; totalPaise: string | null };
 export type ReversalLinkRow = { id: string; reversesId: string | null };
 
 const reversals = alias(ledgerEntries, 'reversals');
+const parentHeads = alias(expenseHeads, 'parent_heads');
 
 /**
  * A reversed entry and the entry reversing it both drop out of every total, so
@@ -76,6 +87,19 @@ function filterConditions(scope: ProjectScope, filters: EntryFilters): SQL[] {
   }
   if (filters.costHead !== undefined) {
     conditions.push(eq(ledgerEntries.costHead, filters.costHead));
+  }
+  if (filters.expenseHeadId !== undefined) {
+    const underHead = or(
+      eq(ledgerEntries.expenseHeadId, filters.expenseHeadId),
+      inArray(
+        ledgerEntries.expenseHeadId,
+        db
+          .select({ id: expenseHeads.id })
+          .from(expenseHeads)
+          .where(eq(expenseHeads.parentId, filters.expenseHeadId)),
+      ),
+    );
+    if (underHead !== undefined) conditions.push(underHead);
   }
   if (filters.membershipId !== undefined) {
     conditions.push(eq(ledgerEntries.membershipId, filters.membershipId));
@@ -122,6 +146,40 @@ export async function totalsByCostHead(
     .from(ledgerEntries)
     .where(and(...filterConditions(scope, filters), ...liveConditions()))
     .groupBy(ledgerEntries.costHead);
+}
+
+export async function totalsByExpenseHead(
+  projectId: string,
+  cycleId: string,
+): Promise<ExpenseHeadTotalRow[]> {
+  const filters: EntryFilters = {
+    projectId,
+    type: 'expense',
+    cycleId,
+    costHead: undefined,
+    membershipId: undefined,
+    from: undefined,
+    to: undefined,
+  };
+
+  return db
+    .select({
+      costHead: ledgerEntries.costHead,
+      headName: expenseHeads.name,
+      parentName: parentHeads.name,
+      totalPaise: sum(ledgerEntries.amountPaise),
+    })
+    .from(ledgerEntries)
+    .leftJoin(expenseHeads, eq(expenseHeads.id, ledgerEntries.expenseHeadId))
+    .leftJoin(parentHeads, eq(parentHeads.id, expenseHeads.parentId))
+    .where(and(...filterConditions(ADMIN_SCOPE, filters), ...liveConditions()))
+    .groupBy(ledgerEntries.costHead, expenseHeads.id, expenseHeads.name, parentHeads.name)
+    .orderBy(
+      asc(ledgerEntries.costHead),
+      asc(sql`coalesce(${parentHeads.sortOrder}, ${expenseHeads.sortOrder})`),
+      asc(parentHeads.name),
+      asc(expenseHeads.sortOrder),
+    );
 }
 
 export async function totalsByMembership(

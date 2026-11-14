@@ -88,6 +88,7 @@ const statementDetailColumns = {
   contributionPaise: partnerStatements.contributionPaise,
   cumulativeSharePaise: partnerStatements.cumulativeSharePaise,
   costsByHead: partnerStatements.costsByHead,
+  costLines: partnerStatements.costLines,
   kiaanShareBps: partnerStatements.kiaanShareBps,
   cycleNo: partnerStatements.cycleNo,
   documentId: partnerStatements.documentId,

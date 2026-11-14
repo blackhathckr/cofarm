@@ -17,6 +17,7 @@ import { authRouter } from './modules/auth/auth.router.ts';
 import { accountRouter } from './modules/account/account.router.ts';
 import { dashboardRouter } from './modules/dashboard/dashboard.router.ts';
 import { documentsRouter } from './modules/documents/documents.router.ts';
+import { expenseHeadsRouter } from './modules/expense-heads/expense-heads.router.ts';
 import { harvestRouter, myStatementsRouter } from './modules/harvest/harvest.router.ts';
 import { healthRouter } from './modules/health/health.router.ts';
 import { jobsRouter } from './modules/jobs/jobs.router.ts';
@@ -88,6 +89,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(projectPartnersRouter, { prefix: '/v1/projects' });
   await app.register(projectUpdatesRouter, { prefix: '/v1/projects' });
   await app.register(ledgerRouter, { prefix: '/v1/projects' });
+  await app.register(expenseHeadsRouter, { prefix: '/v1/expense-heads' });
   await app.register(harvestRouter, { prefix: '/v1/projects' });
   await app.register(myStatementsRouter, { prefix: '/v1/me/statements' });
   await app.register(misRouter, { prefix: '/v1/projects' });

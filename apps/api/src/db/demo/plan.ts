@@ -35,11 +35,9 @@ export type HarvestPlan = {
 };
 
 export type MisPlan = {
-  month: number;
+  quarter: number;
   year: number;
   title: string;
-  narrative: string;
-  outlook: string;
   published: boolean;
 };
 
@@ -164,30 +162,8 @@ export const DEMO_PLAN: readonly ProjectPlan[] = [
       photos: 3,
     },
     mis: [
-      {
-        month: 4,
-        year: 2026,
-        title: 'April 2026',
-        narrative: 'Bunch filling completed across all four blocks. Average bunch weight 24.1 kg.',
-        outlook: 'Harvest window holding at the first week of July.',
-        published: true,
-      },
-      {
-        month: 5,
-        year: 2026,
-        title: 'May 2026',
-        narrative: 'Pre-harvest grading done. Buyer walkthrough completed on the 22nd.',
-        outlook: 'Price indication of 42 to 44 rupees per kg against a 40 rupee budget.',
-        published: true,
-      },
-      {
-        month: 6,
-        year: 2026,
-        title: 'June 2026',
-        narrative: 'Harvest closed on the 28th at 68,400 kg against a 64,000 kg projection.',
-        outlook: 'Payout released in the second week of July. Cycle 2 planning begins in August.',
-        published: true,
-      },
+      { quarter: 4, year: 2025, title: 'Bunch filling and pre-harvest grading', published: true },
+      { quarter: 1, year: 2026, title: 'Harvest closed at 68,400 kg', published: true },
     ],
     updates: [
       {
@@ -311,38 +287,8 @@ export const DEMO_PLAN: readonly ProjectPlan[] = [
       },
     ],
     mis: [
-      {
-        month: 6,
-        year: 2026,
-        title: 'June 2026',
-        narrative: 'Vegetative growth on track. Plant stand at 98.2 percent after gap filling.',
-        outlook: 'Bunch emergence expected from late October.',
-        published: true,
-      },
-      {
-        month: 7,
-        year: 2026,
-        title: 'July 2026',
-        narrative: 'Desuckering completed. Two blocks showed sigatoka pressure and were sprayed.',
-        outlook: 'No change to the harvest window.',
-        published: true,
-      },
-      {
-        month: 8,
-        year: 2026,
-        title: 'August 2026',
-        narrative: 'Girth and height ahead of the reference curve by roughly a week.',
-        outlook: 'Bunch emergence running a week ahead of plan.',
-        published: true,
-      },
-      {
-        month: 9,
-        year: 2026,
-        title: 'September 2026',
-        narrative: 'Propping underway. Costs to date are 42.6 percent of the cycle budget.',
-        outlook: 'Draft, pending the September cost close.',
-        published: false,
-      },
+      { quarter: 1, year: 2026, title: 'Plant stand at 98.2 percent', published: true },
+      { quarter: 2, year: 2026, title: 'Propping underway', published: false },
     ],
     updates: [
       {

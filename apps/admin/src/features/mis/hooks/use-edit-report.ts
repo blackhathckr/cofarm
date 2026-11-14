@@ -2,33 +2,14 @@ import type { UpdateMisBody } from '@cofarm/contracts/mis';
 import { useState } from 'react';
 
 import { useDocumentUpload } from '@/lib/document-upload.ts';
-import { checkUpload, PDF_MIME } from '@/lib/upload-limits.ts';
+import { checkUpload, SPREADSHEET_MIMES } from '@/lib/upload-limits.ts';
 import { useUpdateMisReport } from './use-mis-mutations.ts';
 
 export type ReportEdit = {
   title: string;
-  narrative: string;
-  outlook: string;
-  /** A new PDF to put in place of the attached one, if the admin picked one. */
+  /** A workbook to put in place of the attached one, if the admin picked one. */
   file: File | null;
-  /** Detaches the PDF already on the report. */
-  removePdf: boolean;
 };
-
-/** A picked file wins; otherwise an explicit removal detaches what is there. */
-function attachment(edit: ReportEdit, documentId: string | null): { documentId?: string | null } {
-  if (documentId !== null) return { documentId };
-  return edit.removePdf ? { documentId: null } : {};
-}
-
-function bodyOf(edit: ReportEdit, documentId: string | null): UpdateMisBody {
-  return {
-    title: edit.title,
-    narrative: edit.narrative === '' ? null : edit.narrative,
-    outlook: edit.outlook === '' ? null : edit.outlook,
-    ...attachment(edit, documentId),
-  };
-}
 
 export function useEditReport(projectId: string, reportId: string, onSaved: () => void) {
   const upload = useDocumentUpload();
@@ -39,11 +20,11 @@ export function useEditReport(projectId: string, reportId: string, onSaved: () =
     setFileProblem(null);
 
     if (edit.file === null) {
-      update.mutate(bodyOf(edit, null), { onSuccess: onSaved });
+      update.mutate({ title: edit.title }, { onSuccess: onSaved });
       return;
     }
 
-    const checked = checkUpload(edit.file, [PDF_MIME]);
+    const checked = checkUpload(edit.file, SPREADSHEET_MIMES);
     if ('rejection' in checked) {
       setFileProblem(checked.rejection);
       return;
@@ -52,10 +33,11 @@ export function useEditReport(projectId: string, reportId: string, onSaved: () =
     const file = edit.file;
     void (async () => {
       const stored = await upload
-        .mutateAsync({ projectId, type: 'mis_report', file, allowed: [PDF_MIME] })
+        .mutateAsync({ projectId, type: 'mis_report', file, allowed: SPREADSHEET_MIMES })
         .catch(() => null);
       if (stored === null) return;
-      update.mutate(bodyOf(edit, stored.id), { onSuccess: onSaved });
+      const body: UpdateMisBody = { title: edit.title, documentId: stored.id };
+      update.mutate(body, { onSuccess: onSaved });
     })();
   };
 

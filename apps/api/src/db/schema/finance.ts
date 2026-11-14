@@ -1,7 +1,9 @@
+import type { CostLine } from '@cofarm/contracts/ledger';
 import {
   bigint,
   date,
   index,
+  type AnyPgColumn,
   integer,
   jsonb,
   numeric,
@@ -9,6 +11,7 @@ import {
   smallint,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
@@ -17,6 +20,26 @@ import { documents } from './documents.ts';
 import { costHead, harvestDocumentKind, ledgerType, publishStatus } from './enums.ts';
 import { users } from './identity.ts';
 import { cycles, memberships, projects } from './projects.ts';
+
+export const expenseHeads = pgTable(
+  'expense_heads',
+  {
+    id: uuid('id').primaryKey(),
+    costHead: costHead('cost_head').notNull(),
+    parentId: uuid('parent_id').references((): AnyPgColumn => expenseHeads.id, {
+      onDelete: 'restrict',
+    }),
+    name: text('name').notNull(),
+    sortOrder: smallint('sort_order').notNull().default(0),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('expense_heads_parent_name_key')
+      .on(table.costHead, table.parentId, table.name)
+      .nullsNotDistinct(),
+  ],
+);
 
 export const ledgerEntries = pgTable(
   'ledger_entries',
@@ -29,6 +52,9 @@ export const ledgerEntries = pgTable(
     membershipId: uuid('membership_id').references(() => memberships.id, { onDelete: 'restrict' }),
     type: ledgerType('type').notNull(),
     costHead: costHead('cost_head'),
+    expenseHeadId: uuid('expense_head_id').references(() => expenseHeads.id, {
+      onDelete: 'restrict',
+    }),
     amountPaise: bigint('amount_paise', { mode: 'bigint' }).notNull(),
     entryDate: date('entry_date').notNull(),
     note: text('note'),
@@ -95,6 +121,7 @@ export const partnerStatements = pgTable(
     contributionPaise: bigint('contribution_paise', { mode: 'bigint' }).notNull(),
     cumulativeSharePaise: bigint('cumulative_share_paise', { mode: 'bigint' }).notNull(),
     costsByHead: jsonb('costs_by_head').$type<Record<string, string>>().notNull().default({}),
+    costLines: jsonb('cost_lines').$type<CostLine[]>().notNull().default([]),
     kiaanShareBps: integer('kiaan_share_bps').notNull(),
     cycleNo: smallint('cycle_no').notNull(),
     documentId: uuid('document_id').references(() => documents.id, { onDelete: 'set null' }),

@@ -5,7 +5,15 @@ import type {
   PartnerProjectCard,
   TaskUrgency,
 } from '@cofarm/contracts/dashboard';
-import { misPeriodLabel, type MisLatest } from '@cofarm/contracts/mis';
+import {
+  misPeriodLabel,
+  misPeriodOf,
+  misPeriodStart,
+  nextMisPeriod,
+  previousMisPeriod,
+  type MisLatest,
+  type MisPeriod,
+} from '@cofarm/contracts/mis';
 import type { PartnerMembership } from '@cofarm/contracts/partners';
 import type { Cycle, ProjectSummary } from '@cofarm/contracts/projects';
 import { activeStage, MILESTONE_LABELS } from '@cofarm/core/cycle';
@@ -24,7 +32,7 @@ const MIS_PERIOD_LOOKBACK = 12;
 const NOTIFICATION_SCAN_LIMIT = 100;
 const UNSIGNED_NAMES_SHOWN = 3;
 
-/** The MIS for a month is expected in the first week of the month after it. */
+/** The MIS for a quarter is expected in the first week of the month after it. */
 const MIS_DUE_DAY = 7;
 
 const SHORT_MONTHS = [
@@ -46,11 +54,6 @@ const URGENCY_ORDER: Readonly<Record<TaskUrgency, number>> = {
   due: 0,
   upcoming: 1,
   reminder: 2,
-};
-
-type Period = {
-  year: number;
-  month: number;
 };
 
 export async function adminDashboard(
@@ -180,7 +183,7 @@ async function tasksForProject(
   viewer: mis.MisViewer,
   project: ProjectSummary,
   latest: MisLatest | null,
-  period: Period,
+  period: MisPeriod,
 ): Promise<DashboardTask[]> {
   const [archive, projectPartners] = await Promise.all([
     mis.listReports(viewer, project.id, { limit: MIS_PERIOD_LOOKBACK }),
@@ -189,11 +192,12 @@ async function tasksForProject(
 
   const tasks: DashboardTask[] = [];
   const header = { projectId: project.id, projectCode: project.code };
-  const label = misPeriodLabel(period.month, period.year);
+  const label = misPeriodLabel(period.quarter, period.year);
   const deadline = misDeadline(period);
   const forPeriod =
-    archive.items.find((report) => report.year === period.year && report.month === period.month) ??
-    null;
+    archive.items.find(
+      (report) => report.year === period.year && report.quarter === period.quarter,
+    ) ?? null;
 
   if (forPeriod === null) {
     tasks.push({
@@ -270,19 +274,14 @@ async function collectActiveProjects(scope: ProjectScope): Promise<ProjectSummar
   return collected;
 }
 
-/** Zero-based `getUTCMonth` already reads as the previous month's number. */
-function previousPeriod(today: Date): Period {
-  const month = today.getUTCMonth();
-  if (month === 0) return { year: today.getUTCFullYear() - 1, month: 12 };
-  return { year: today.getUTCFullYear(), month };
+function previousPeriod(today: Date): MisPeriod {
+  return previousMisPeriod(misPeriodOf(today.getUTCFullYear(), today.getUTCMonth() + 1));
 }
 
-function misDeadline(period: Period): { urgency: TaskUrgency; dueLabel: string } {
-  const rolls = period.month === 12;
-  const dueYear = rolls ? period.year + 1 : period.year;
-  const dueMonth = rolls ? 1 : period.month + 1;
-  const dueAt = Date.UTC(dueYear, dueMonth - 1, MIS_DUE_DAY);
-  const label = `${MIS_DUE_DAY.toString()} ${shortMonth(dueMonth)}`;
+function misDeadline(period: MisPeriod): { urgency: TaskUrgency; dueLabel: string } {
+  const due = misPeriodStart(nextMisPeriod(period));
+  const dueAt = Date.UTC(due.calendarYear, due.month - 1, MIS_DUE_DAY);
+  const label = `${MIS_DUE_DAY.toString()} ${shortMonth(due.month)}`;
 
   if (Date.now() > dueAt) return { urgency: 'due', dueLabel: `Overdue since ${label}` };
   return { urgency: 'upcoming', dueLabel: `Due ${label}` };

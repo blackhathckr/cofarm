@@ -9,6 +9,7 @@ import { fetchExpenses, recordExpense, reverseExpense } from '../ledger.api.ts';
 export type ExpenseFilters = {
   cycleId?: string;
   costHead?: CostHead;
+  expenseHeadId?: string;
   from?: string;
   to?: string;
 };

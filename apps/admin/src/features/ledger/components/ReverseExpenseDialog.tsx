@@ -1,3 +1,4 @@
+import type { ExpenseHead } from '@cofarm/contracts/expense-heads';
 import type { LedgerEntry } from '@cofarm/contracts/ledger';
 import { useState, type SyntheticEvent } from 'react';
 import { COST_HEAD_LABELS } from '@cofarm/core/pnl';
@@ -15,18 +16,25 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { headPath } from '@/lib/expense-heads.ts';
 import { useReverseExpense } from '../hooks/use-expenses.ts';
 
 type ReverseExpenseDialogProps = {
   projectId: string;
   entry: LedgerEntry;
+  heads: readonly ExpenseHead[];
   onClose: () => void;
 };
 
 const ALREADY_REVERSED =
   'This entry has already been reversed. Reload the list to see the reversing entry.';
 
-export function ReverseExpenseDialog({ projectId, entry, onClose }: ReverseExpenseDialogProps) {
+export function ReverseExpenseDialog({
+  projectId,
+  entry,
+  heads,
+  onClose,
+}: ReverseExpenseDialogProps) {
   const [reason, setReason] = useState('');
   const [invalid, setInvalid] = useState<string | null>(null);
   const reverse = useReverseExpense(projectId);
@@ -59,8 +67,12 @@ export function ReverseExpenseDialog({ projectId, entry, onClose }: ReverseExpen
         </DialogHeader>
 
         <dl className="grid grid-cols-2 gap-2 rounded-lg border bg-muted p-4 text-sm">
-          <dt className="text-muted-foreground">Cost head</dt>
+          <dt className="text-muted-foreground">Category</dt>
           <dd>{entry.costHead === null ? '—' : COST_HEAD_LABELS[entry.costHead]}</dd>
+          <dt className="text-muted-foreground">Head</dt>
+          <dd>
+            {entry.expenseHeadId === null ? '—' : (headPath(heads, entry.expenseHeadId) ?? '—')}
+          </dd>
           <dt className="text-muted-foreground">Amount</dt>
           <dd>
             <MoneyText paise={entry.amountPaise} showPaise />

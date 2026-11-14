@@ -1,7 +1,6 @@
 import {
   createMisBodySchema,
   listMisQuerySchema,
-  misComposePayloadSchema,
   misLatestSchema,
   misPageSchema,
   misReportParamsSchema,
@@ -51,9 +50,5 @@ export const misSchemas = {
   receipts: {
     params: misReportParamsSchema,
     response: { 200: entityReceiptsSchema },
-  },
-  compose: {
-    params: misReportParamsSchema,
-    response: { 200: misComposePayloadSchema },
   },
 } as const;

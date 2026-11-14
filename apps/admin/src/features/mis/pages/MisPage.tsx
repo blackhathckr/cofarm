@@ -41,7 +41,8 @@ export function MisPage({ projectId }: MisPageProps) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">MIS reports</h1>
           <p className="text-sm text-muted-foreground">
-            One report per month, newest first. Partners see a report only once it is published.
+            One Excel report per quarter, newest first. Partners see a report only once it is
+            published.
           </p>
         </div>
         <Button
@@ -67,7 +68,6 @@ export function MisPage({ projectId }: MisPageProps) {
               <TableRow>
                 <TableHead>Period</TableHead>
                 <TableHead>Title</TableHead>
-                <TableHead>Document</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Published</TableHead>
               </TableRow>
@@ -75,9 +75,9 @@ export function MisPage({ projectId }: MisPageProps) {
             <TableBody>
               {rows.length === 0 ? (
                 <EmptyState
-                  colSpan={5}
+                  colSpan={4}
                   title="No reports in the archive yet"
-                  detail="Create a report for the month; partners see it once it is published."
+                  detail="Upload the quarter's workbook; partners see it once it is published."
                 />
               ) : null}
               {rows.map((report) => (
@@ -91,9 +91,6 @@ export function MisPage({ projectId }: MisPageProps) {
                     </Link>
                   </TableCell>
                   <TableCell>{report.title}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {report.documentId === null ? 'None attached' : 'PDF attached'}
-                  </TableCell>
                   <TableCell>
                     <Badge variant={report.status === 'published' ? 'default' : 'outline'}>
                       {report.status === 'published' ? 'Published' : 'Draft'}

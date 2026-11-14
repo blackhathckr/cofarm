@@ -222,6 +222,7 @@ export async function publishHarvest(projectId: string, harvestId: string): Prom
 
   const publishedAt = new Date();
   const costsByHead = toCostTotals(pnl.costsByHead);
+  const costLines = await ledger.cycleCostLines(projectId, harvest.cycleId);
   const published = await repo.publishHarvest({
     harvestId,
     publishedAt,
@@ -239,6 +240,7 @@ export async function publishHarvest(projectId: string, harvestId: string): Prom
       contributionPaise: share.contributionPaise,
       cumulativeSharePaise: (priorShares.get(share.membershipId) ?? 0n) + share.sharePaise,
       costsByHead,
+      costLines,
       kiaanShareBps: project.kiaanShareBps,
       cycleNo: harvest.cycleNo,
       generatedAt: publishedAt,

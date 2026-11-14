@@ -6,9 +6,8 @@ import { Loading } from '@/components/ui/Loading';
 import { RefreshScreen } from '@/components/ui/RefreshScreen';
 import { ProjectSwitcher } from '@/components/ui/ProjectSwitcher';
 import { useSession } from '@/features/auth/hooks/use-session.ts';
-import { useSelectedProject } from '@/lib/selected-project.ts';
-import { ApiError } from '@/lib/api-client.ts';
 import { useDocumentDownload } from '@/lib/document-download.ts';
+import { useSelectedProject } from '@/lib/selected-project.ts';
 import { MisArchiveList } from '../components/MisArchiveList';
 import { MisLatestCard } from '../components/MisLatestCard';
 import { MisReportDialog } from '../components/MisReportDialog';
@@ -27,17 +26,16 @@ export function MisScreen({ openReportId }: MisScreenProps) {
   const reports = useMisReports(projectId);
   const openReport = useOpenMisReport(projectId);
   const { mutate: requestReport } = openReport;
-  const download = useDocumentDownload();
+  const workbook = useDocumentDownload();
   const [shownReportId, setShownReportId] = useState<string | null>(null);
 
   const published = reports.items;
   const [latest, ...archive] = published;
   const detail = openReport.data?.id === shownReportId ? openReport.data : null;
   const openingReportId = openReport.isPending ? shownReportId : null;
-  const downloadError = download.error instanceof ApiError ? download.error.message : null;
 
   const open = (reportId: string) => {
-    download.reset();
+    workbook.reset();
     setShownReportId(reportId);
     requestReport(reportId);
   };
@@ -75,7 +73,7 @@ export function MisScreen({ openReportId }: MisScreenProps) {
           >
             <EmptyState
               title="No report published yet"
-              detail="Your first monthly report will appear here as soon as the Kiaan team publishes it."
+              detail="Your first quarterly report will appear here as soon as the Kiaan team publishes it."
             />
           </RefreshScreen>
         )}
@@ -99,7 +97,7 @@ export function MisScreen({ openReportId }: MisScreenProps) {
       {switcher}
 
       <Text className="text-sm text-muted">
-        Your monthly farm report, published by the Kiaan team.
+        Your quarterly farm report, published by the Kiaan team.
       </Text>
 
       <MisLatestCard
@@ -127,15 +125,15 @@ export function MisScreen({ openReportId }: MisScreenProps) {
         report={detail}
         isOpen={shownReportId !== null}
         isPending={openReport.isPending}
-        isDownloading={download.isPending}
-        downloadError={downloadError}
-        onDownload={(documentId) => {
-          download.mutate(documentId);
+        isOpeningFile={workbook.isPending}
+        fileError={workbook.error?.message ?? null}
+        onOpenFile={(report) => {
+          workbook.mutate(report.documentId);
         }}
         onClose={() => {
           setShownReportId(null);
           openReport.reset();
-          download.reset();
+          workbook.reset();
         }}
       />
     </ScrollView>

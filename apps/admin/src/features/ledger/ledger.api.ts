@@ -18,6 +18,7 @@ export function fetchExpenses(projectId: string, query: Partial<ListExpensesQuer
   const params = new URLSearchParams();
   if (query.cycleId !== undefined) params.set('cycleId', query.cycleId);
   if (query.costHead !== undefined) params.set('costHead', query.costHead);
+  if (query.expenseHeadId !== undefined) params.set('expenseHeadId', query.expenseHeadId);
   if (query.from !== undefined) params.set('from', query.from);
   if (query.to !== undefined) params.set('to', query.to);
   if (query.cursor !== undefined) params.set('cursor', query.cursor);

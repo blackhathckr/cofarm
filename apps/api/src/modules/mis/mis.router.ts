@@ -46,12 +46,6 @@ export const misRouter: FastifyPluginAsyncZod = (app) => {
     handler: controller.publish,
   });
 
-  app.post('/:projectId/mis/:reportId/compose', {
-    schema: misSchemas.compose,
-    preValidation: requirePermission(PERMISSIONS.misWrite),
-    handler: controller.compose,
-  });
-
   app.delete('/:projectId/mis/:reportId', {
     schema: misSchemas.remove,
     preValidation: requirePermission(PERMISSIONS.misWrite),
