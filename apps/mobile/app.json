@@ -44,7 +44,19 @@
           "color": "#c67139"
         }
       ],
-      "expo-video"
+      "expo-video",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-blank.png",
+          "imageWidth": 1,
+          "backgroundColor": "#faf9f5",
+          "dark": {
+            "image": "./assets/splash-blank.png",
+            "backgroundColor": "#1b1a17"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
